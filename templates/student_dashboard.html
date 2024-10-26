@@ -1,0 +1,66 @@
+<!-- templates/student_dashboard.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .chat-box { width: 100%; max-width: 600px; margin: 0 auto; }
+        .message { padding: 10px; border-radius: 5px; margin-bottom: 10px; }
+        .user-message { background-color: #d1e7dd; text-align: right; }
+        .ai-message { background-color: #f8d7da; text-align: left; }
+        .input-group { display: flex; gap: 10px; margin-top: 20px; }
+        input[type="text"] { flex: 1; padding: 10px; }
+        button { padding: 10px 15px; }
+    </style>
+</head>
+<body>
+    <h1>Student Dashboard</h1>
+
+    <div class="chat-box" id="chat-box">
+        <!-- Render message history -->
+        {% for message in history %}
+            <div class="message {% if message.sender == 'user' %}user-message{% else %}ai-message{% endif %}">
+                {{ message.text }}
+            </div>
+        {% endfor %}
+    </div>
+
+    <form id="chat-form" class="input-group" action="{{ url_for('student_dashboard') }}" method="post">
+        <input type="text" id="user_question" name="user_question" placeholder="Type your message here..." required>
+        <button type="submit">Send</button>
+    </form>
+
+    <!-- Display AI answers as JSON -->
+    <div id="json-list">
+        <h2>Last Conversation in JSON:</h2>
+        <pre>{{ last_conversation_json|tojson(indent=4) }}</pre>
+        <hr>
+        <pre>{{ json_gemini }}</pre>
+    </div>
+
+    <div>
+        <h1>University Courses</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Course Code</th>
+                    <th>Course Name</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for course in json_to_table %}
+                <tr>
+                    <td>{{ course.course_code }}</td>
+                    <td>{{ course.course_name }}</td>
+                    <td>{{ course.description }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>

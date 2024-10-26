@@ -1,0 +1,11 @@
+Flask
+Jinja2
+virtualenv
+SQLAlchemy
+Flask-SQLAlchemy
+Flask-Bcrypt
+Flask-Login
+wtforms
+flask_wtf
+python-dotenv
+google-generativeai

@@ -3,7 +3,7 @@ import json
 from flask import Flask, render_template, url_for, flash, redirect, request, jsonify, session
 from flask_login import login_required, login_user, logout_user, UserMixin, LoginManager, current_user
 from forms import RegistrationForm, LoginForm
-from models import db, bcrypt, User, ChatHistory
+from models import db, bcrypt, User, ChatHistory, Course, Topic
 from dotenv import load_dotenv
 import requests
 import os
@@ -120,6 +120,23 @@ def student_dashboard():
         # json_gemini = ''
     
     return render_template('student_dashboard.html', history=history, last_conversation_json=last_conversation_json) # json_gemini=json_gemini, json_to_table=json_data_list
+
+@app.route('/dashboard/student/<data["course_code"]>', methods=['GET'])
+def table(data):
+    topics = []
+
+
+    for topic_data in data['topics']:
+        topics.append(Topic(topic_data['name'], topic_data['subtopics']))
+    course = Course(data['course_name'],data['course_code'],topics)
+
+    try:
+        db.session.add(course)
+        db.session.commit()
+        return render_template('course_table.html',course)
+    except:
+        return None
+    
 
 
 # AI section

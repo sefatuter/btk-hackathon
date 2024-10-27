@@ -16,13 +16,36 @@ class User(db.Model, UserMixin):
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.role}')"
 
-# class Curriculum(db.Model):
-#     __tablename__ = 'curriculum'
-#     id = db.Column(db.Integer, primary_key=True)
-#     step_name = db.Column(db.String(255), nullable=False)
-#     sub_steps = db.Column(db.JSON)
-#     multimedia_content = db.Column(db.JSON)
+class Course(db.Model):
+    # name = ''
+    # def __init__(self, name, code, topics):
+    #     self.name = name
+    #     self.code = code
+    #     self.topics = topics
+    id = db.Column(db.Integer, primary_key=True)
+    course_code = db.Column(db.String(10), nullable=False)
+    course_name = db.Column(db.String,nullable = False)
+    topics = db.relationship('Topic',backref='course', lazy=True, cascade="all, delete-orphan")
+# class Course():
+#     name = ''
+#     code = ''
+#     topics = []
+#     def __init__(self, name, code, topics):
+#         self.name = name
+#         self.code = code
+#         self.topics = topics
+
+class Topic(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    topic_name = db.Column(db.String(50), nullable = False)
+    subtopics = db.relationship('Subtopic', backref='topic',lazy = True, cascade="all, delete-orphan")
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     
+class Subtopic(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    subtopic_name= db.Column(db.String(50),nullable = False)
+    topic_id = db.Column(db.Integer, db.ForeignKey('topic.id'), nullable=False)
+
 # class Quiz(db.Model):
 #     id = db.Column(db.Integer, primary_key=True)
 #     step_id = db.Column(db.Integer, db.ForeignKey('curriculum.id'))

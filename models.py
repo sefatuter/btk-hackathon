@@ -15,21 +15,16 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.role}')"
-
-# class Curriculum(db.Model):
-#     __tablename__ = 'curriculum'
-#     id = db.Column(db.Integer, primary_key=True)
-#     step_name = db.Column(db.String(255), nullable=False)
-#     sub_steps = db.Column(db.JSON)
-#     multimedia_content = db.Column(db.JSON)
-    
-# class Quiz(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     step_id = db.Column(db.Integer, db.ForeignKey('curriculum.id'))
-#     questions = db.Column(db.JSON)
     
 class ChatHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course_info.id', ondelete='CASCADE'))  # Link to CourseInfo
     sender = db.Column(db.String(10), nullable=False)  # 'user' or 'ai'
     text = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+class CourseInfo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    course_code = db.Column(db.String(50), nullable=False)
+    course_name = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text, nullable=False)

@@ -168,17 +168,12 @@ def ask_gemini_auto(prompt):
 
 # Get data from JSON file
 def process_json_data(raw_json):
-    # Clear json_gemini answer
     json_text_cleaned = raw_json.replace('```json', '').replace('```', '').strip()
    
     try:
-        # Handle possible line breaks and extra spaces
         json_text_cleaned = ' '.join(json_text_cleaned.split())
-        print("Clean: " + json_text_cleaned)
         json_data = json.loads(json_text_cleaned)
-        json_data_list = [json_data]
-        print(json_data_list)
-        return json_data_list
+        return json_data
     except json.JSONDecodeError as e:
         print(f"JSON Decode Error: {e}")
         print(f"Cleaned text was: {json_text_cleaned}")

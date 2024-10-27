@@ -148,14 +148,28 @@ quiz sorusu maksimum 20 olsun.
 şimdilik kontrol sistemi olmasın.
 ...
 
-Pelin was here.
-Pelin was here again.
-ahahahhahaha
-testtesttest branch test
-Quiz222
+system_instruction = '''Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla:
+{
+  "course_code": "<Dersin kodunu buraya yazın>",
+  "course_name": "<Dersin adını buraya yazın>",
+  "topics": [
+    {
+      "name": "<Ana konu başlığını buraya yazın>",
+      "subtopics": [
+        "<Alt konu başlığı 1>",
+        "<Alt konu başlığı 2>",
+        "<Alt konu başlığı 3>",
+        "..."
+      ]
+    },
+    "..."
+  ]
+}'''
 
 S.T -------------------------------------------------------
 
-
+  Oluşturulan tabloya chat üzerinden yönlendirme butonu olabilir
+  konuşma içerisinde oluşturuuldu! git tarzı
+  
 ```
 

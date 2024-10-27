@@ -141,6 +141,24 @@ def ask_gemini_auto(prompt):
     # print(response_auto)
     return response_auto
 
+# Get data from JSON file
+def process_json_data(raw_json):
+    # Clear json_gemini answer
+    json_text_cleaned = raw_json.replace('```json', '').replace('```', '').strip()
+   
+    try:
+        # Handle possible line breaks and extra spaces
+        json_text_cleaned = ' '.join(json_text_cleaned.split())
+        print("Clean: " + json_text_cleaned)
+        json_data = json.loads(json_text_cleaned)
+        json_data_list = [json_data]
+        print(json_data_list)
+        return json_data_list
+    except json.JSONDecodeError as e:
+        print(f"JSON Decode Error: {e}")
+        print(f"Cleaned text was: {json_text_cleaned}")
+        return None
+
 # Create the model
 generation_config = {
   "temperature": 1,
@@ -153,7 +171,8 @@ generation_config = {
 model = genai.GenerativeModel(
   model_name="gemini-1.5-pro",
   generation_config=generation_config,
-)
+  system_instruction='Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla: { "course_code": "<Bu alana dersin kodunu yazın>", "course_name": "<Bu alana dersin adını yazın,>", "description": "<Bu alana dersin içeriğini ve amacını açıklayan bir paragraf yazın." }'
+  )
 
 # Create tables if not exists
 with app.app_context():

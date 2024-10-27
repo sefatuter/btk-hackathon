@@ -9,3 +9,5 @@ wtforms
 flask_wtf
 python-dotenv
 google-generativeai
+psycopg2
+email_validator

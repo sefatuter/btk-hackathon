@@ -3,7 +3,7 @@ import json
 from flask import Flask, render_template, url_for, flash, redirect, request, jsonify, session
 from flask_login import login_required, login_user, logout_user, UserMixin, LoginManager, current_user
 from forms import RegistrationForm, LoginForm
-from models import db, bcrypt, User, ChatHistory, Course, Topic
+from models import db, bcrypt, User, ChatHistory, Course, Topic, Subtopic
 from dotenv import load_dotenv
 import requests
 import os
@@ -19,7 +19,9 @@ app.permanent_session_lifetime = timedelta(days=1)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
-
+course_counter=0
+topic_counter=0
+subtopic_counter=0
 # AI Configuration
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
@@ -123,12 +125,18 @@ def student_dashboard():
 
 @app.route('/dashboard/student/<data["course_code"]>', methods=['GET'])
 def table(data):
-    topics = []
-
-
+    course_counter += 1
+    course = Course(course_name = data['course_name'],course_code = data['course_code'],id = course_counter)
     for topic_data in data['topics']:
-        topics.append(Topic(topic_data['name'], topic_data['subtopics']))
-    course = Course(data['course_name'],data['course_code'],topics)
+        topic_counter += 1
+        topic = Topic(id=topic_counter,topic_name=topic_data['name'])
+        for subtopic_name in topic_data['subtopics']:
+            subtopic_counter += 1
+            subtopic=Subtopic(name=subtopic_name, id=subtopic_counter)
+            topic.subtopics.append(subtopic)
+        
+        course.topics.append(topic)
+    
 
     try:
         db.session.add(course)

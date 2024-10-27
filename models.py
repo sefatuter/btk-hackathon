@@ -17,23 +17,11 @@ class User(db.Model, UserMixin):
         return f"User('{self.username}', '{self.email}', '{self.role}')"
 
 class Course(db.Model):
-    # name = ''
-    # def __init__(self, name, code, topics):
-    #     self.name = name
-    #     self.code = code
-    #     self.topics = topics
+
     id = db.Column(db.Integer, primary_key=True)
     course_code = db.Column(db.String(10), nullable=False)
     course_name = db.Column(db.String,nullable = False)
     topics = db.relationship('Topic',backref='course', lazy=True, cascade="all, delete-orphan")
-# class Course():
-#     name = ''
-#     code = ''
-#     topics = []
-#     def __init__(self, name, code, topics):
-#         self.name = name
-#         self.code = code
-#         self.topics = topics
 
 class Topic(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -46,11 +34,6 @@ class Subtopic(db.Model):
     subtopic_name= db.Column(db.String(50),nullable = False)
     topic_id = db.Column(db.Integer, db.ForeignKey('topic.id'), nullable=False)
 
-# class Quiz(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     step_id = db.Column(db.Integer, db.ForeignKey('curriculum.id'))
-#     questions = db.Column(db.JSON)
-    
 class ChatHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sender = db.Column(db.String(10), nullable=False)  # 'user' or 'ai'

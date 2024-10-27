@@ -105,6 +105,12 @@ max 10 subtopics[i]
   ]
 }
 
+
+
+promptu bi daha gemini ye yolla
+
+
+
 P.K -------------------------------------------------------
 
 1 course_name 

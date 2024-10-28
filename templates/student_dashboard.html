@@ -1,38 +1,27 @@
-<!-- templates/student_dashboard.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Student Dashboard</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .chat-box { width: 100%; max-width: 600px; margin: 0 auto; }
-        .message { padding: 10px; border-radius: 5px; margin-bottom: 10px; }
-        .user-message { background-color: #d1e7dd; text-align: right; }
-        .ai-message { background-color: #f8d7da; text-align: left; }
-        .input-group { display: flex; gap: 10px; margin-top: 20px; }
-        input[type="text"] { flex: 1; padding: 10px; }
-        button { padding: 10px 15px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background-color: #f2f2f2; }
-    </style>
-</head>
-<body>
-    <h1>Student Dashboard</h1>
+{% extends "base.html" %}
 
-    <div class="chat-box" id="chat-box">
+{% block title %}Home{% endblock %}
+
+{% block content %}
+
+<section class="student-dashboard">
+    <h1>Student Dashboard  <a href="{{ url_for('student_dashboard') }}" class="btn btn-warning btn-sm"> Refresh Page</a></h1><hr>
+    <div class="container">
+        <a href="{{ url_for('home') }}" class="btn btn-primary btn-sm mb-1">>Home</a><br>
+        <a href="{{ url_for('chatbot') }}" class="btn btn-success btn-sm">>Catbot</a>
+    </div>
+    
+    <div class="student-dashboard-chat-box" id="chat-box">
         {% set combined_history = historyUser + historyAI %}
         {% set sorted_history = combined_history | sort(attribute='timestamp') %}
     
         {% for message in sorted_history %}
-            <div class="message {% if message.sender == 'user' %}user-message{% else %}ai-message{% endif %}">
+            <div class="student-dashboard-message {% if message.sender == 'user' %}student-dashboard-user-message{% else %}student-dashboard-ai-message{% endif %}">
                 {% if message.text in ['```json\n{}\n```', '{}\n', '{}'] %}
-                    <div class="error-message" style="font-weight: bold;">Please Ask About University Courses.</div>
+                    <div class="student-dashboard-error-message" style="font-weight: bold;">Please Ask About University Courses.</div>
                 {% elif message.sender == 'ai' %}
                     <div style="font-weight: bold;">Course Added Successfully.</div>
                     
-                    {# Find the course corresponding to the current AI message #}
                     {% set course = json_to_table | selectattr("id", "equalto", message.course_id) | list | first %}
     
                     {% if course %}
@@ -50,29 +39,30 @@
     </div>
     
 
-    <form id="chat-form" class="input-group" action="{{ url_for('student_dashboard') }}" method="post">
-        <input type="text" id="user_question" name="user_question" placeholder="Type your message here..." required>
-        <button type="submit">Send</button>
+    <form id="chat-form" class="student-dashboard-input-group" action="{{ url_for('student_dashboard') }}" method="post">
+        <input type="text" id="user_question" name="user_question" class="student-dashboard-input" placeholder="Type your message here..." required>
+        <button type="submit" class="student-dashboard-button">Send</button>
     </form>
 
     <div>
-        <h1>University Courses</h1>
-        <table>
+        <br>
+        <h1>University Courses</h1><hr>
+        <table class="student-dashboard-table">
             <thead>
                 <tr>
-                    <th>Course Code</th>
-                    <th>Course Name</th>
-                    <th>Description</th>
-                    <th>Action</th>
+                    <th class="student-dashboard-th">Course Code</th>
+                    <th class="student-dashboard-th">Course Name</th>
+                    <th class="student-dashboard-th">Description</th>
+                    <th class="student-dashboard-th">Action</th>
                 </tr>
             </thead>
             <tbody>
                 {% for course in json_to_table %}
                     <tr>
-                        <td>{{ course.course_code }}</td>
-                        <td>{{ course.course_name }}</td>
-                        <td>{{ course.description }}</td>
-                        <td>
+                        <td class="student-dashboard-td">{{ course.course_code }}</td>
+                        <td class="student-dashboard-td">{{ course.course_name }}</td>
+                        <td class="student-dashboard-td">{{ course.description }}</td>
+                        <td class="student-dashboard-td">
                             <form action="{{ url_for('list_course', course_id=course.id) }}" method="POST" style="display:inline;">
                                 <button type="submit" style="height: 40px; width: 150px; color:white; background-color: green;">
                                     List Course
@@ -89,5 +79,6 @@
             </tbody>
         </table>
     </div>
-</body>
-</html>
+</section>
+
+{% endblock %}

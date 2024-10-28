@@ -1,23 +1,22 @@
 
 body {
-    .footer-custom {
-        text-align: center;
-        padding: 1rem;
-        color: rgb(255, 255, 255);
-        margin-top: 4rem; /* Keep this if you want space above the footer */
-        box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.3);
-        background-size: cover; /* Ensures the background image covers the entire footer */
-        background-position: center; /* Centers the background image */
-        position: fixed; /* Keeps the footer fixed at the bottom */
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        z-index: 1; /* Ensure footer has a lower z-index than other content */
-    }
+    padding-bottom: 60px; /* Same as the footer height */
+    font-family: Arial, sans-serif;
 }
 
-
-
+.footer-custom {
+    display: none; /* Initially hidden */
+    text-align: center;
+    padding: 1rem;
+    color: rgb(0, 0, 0);
+    background-color: #f8f9fa;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.3);
+    height: 60px;
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    z-index: 1;
+}
 
 
 
@@ -258,4 +257,68 @@ label {
 
 #generated-tables th {
     background-color: #f2f2f2;
+}
+
+
+section.student-dashboard { 
+    font-family: Arial, sans-serif; 
+    margin: 20px; 
+}
+
+.student-dashboard-chat-box { 
+    width: 100%; 
+    max-width: 600px; 
+    margin: 0 auto; 
+    max-height: 300px; /* Set a maximum height */
+    overflow-y: auto;  /* Enable vertical scrolling */
+    border: 1px solid #ccc; /* Optional: Add a border for better visibility */
+    padding: 10px; /* Optional: Add some padding */
+    border-radius: 5px; /* Optional: Add rounded corners */
+}
+
+.student-dashboard-message { 
+    padding: 10px; 
+    border-radius: 5px; 
+    margin-bottom: 10px; 
+}
+
+.student-dashboard-user-message { 
+    background-color: #d1e7dd; 
+    text-align: right; 
+}
+
+.student-dashboard-ai-message { 
+    background-color: #f8d7da; 
+    text-align: left; 
+}
+
+.student-dashboard-input-group { 
+    display: flex; 
+    gap: 10px; 
+    margin-top: 20px; 
+}
+
+.student-dashboard-input { 
+    flex: 1; 
+    padding: 10px; 
+}
+
+.student-dashboard-button { 
+    padding: 10px 15px; 
+}
+
+.student-dashboard-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    margin-top: 20px; 
+}
+
+.student-dashboard-th, .student-dashboard-td { 
+    padding: 10px; 
+    text-align: left; 
+    border-bottom: 1px solid #ddd; 
+}
+
+.student-dashboard-th { 
+    background-color: #f2f2f2; 
 }

@@ -177,5 +177,6 @@ S.T -------------------------------------------------------
   Oluşturulan tabloya chat üzerinden yönlendirme butonu olabilir
   konuşma içerisinde oluşturuuldu! git tarzı
   
+  tablo ekranına, progress kısmı, öğrenci ilerlemesini kayıt altına alma
 ```
 

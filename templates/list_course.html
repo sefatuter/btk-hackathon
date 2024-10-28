@@ -14,7 +14,7 @@
 </head>
 <body>
     <h1>Course Details</h1>
-    <h2>{{ course.course_code }} - {{ course.course_name }}</h2>
+    <h2>{{ course.course_code }} - {{ course.course_name }}  <button>Quiz yap</button></h2>
     
     <h3>Topics</h3>
     <ul>
@@ -23,7 +23,7 @@
                 <strong>{{ topic.topic_name }}</strong>
                 <ul>
                     {% for subtopic in topic.subtopics %}
-                        <li>{{ subtopic.subtopic_name }}</li>
+                        <li>{{ subtopic.subtopic_name }} <button>Quiz yap</button></li>
                     {% endfor %}
                 </ul>
             </li>

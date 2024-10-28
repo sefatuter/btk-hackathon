@@ -123,7 +123,7 @@ def list_course(course_id):
 def student_dashboard():
     if request.method == 'POST':
         prompt = request.form.get('user_question')
-        response_text = generate_text(prompt)
+        response_text = generate_text(prompt, model=model1)
         if response_text:
             # If json data is returns empty
             if process_json_data(response_text) == {}:
@@ -164,7 +164,7 @@ def student_dashboard():
 
 
 # AI section
-def generate_text(prompt):
+def generate_text(prompt, model):
     recent_history = ChatHistory.query.order_by(ChatHistory.timestamp.desc()).limit(5).all()
     recent_history.reverse()
     
@@ -204,7 +204,15 @@ generation_config = {
   "response_mime_type": "text/plain",
 }
 
-model = genai.GenerativeModel(
+# Course Model
+model1 = genai.GenerativeModel(
+  model_name="gemini-1.5-pro",
+  generation_config=generation_config,
+  system_instruction='Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla: { "course_code": "<Bu alana dersin kodunu yazın>", "course_name": "<Bu alana dersin adını yazın>", "description": "<Bu alana dersin içeriğini ve amacını açıklayan bir paragraf yazın." }. Eğer sorulan soru ders bilgileriyle alakasızsa, boş bir JSON objesi döndür.' 
+)
+
+# Listing Model
+model2 = genai.GenerativeModel(
   model_name="gemini-1.5-pro",
   generation_config=generation_config,
   system_instruction='''Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla:
@@ -224,8 +232,18 @@ model = genai.GenerativeModel(
         ...
     ]
     }'''  
-#   system_instruction='Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla: { "course_code": "<Bu alana dersin kodunu yazın>", "course_name": "<Bu alana dersin adını yazın>", "description": "<Bu alana dersin içeriğini ve amacını açıklayan bir paragraf yazın." }. Eğer sorulan soru ders bilgileriyle alakasızsa, boş bir JSON objesi döndür.' 
 )
+
+# Quiz Model
+model3 = genai.GenerativeModel(
+  model_name="gemini-1.5-pro",
+  generation_config=generation_config,
+  system_instruction='''Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla:
+    {
+    }'''  
+)
+
+
 
 # Create tables if not exists
 with app.app_context():
@@ -242,7 +260,7 @@ def table(raw_data, course_id):
     existing_course = Course.query.filter(Course.course_info.has(CourseInfo.id == course_id)).first()
     if not existing_course:
         # Generate and process the raw data
-        data = generate_text(raw_data)
+        data = generate_text(raw_data, model=model2)
         data = process_json_data(data)
         
         # Create a new Course object

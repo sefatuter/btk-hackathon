@@ -8,9 +8,8 @@
         body {  
             font-family: Arial, sans-serif;
             margin: 20px;
-            color:red;
+            color: black;
         }
-        
     </style>
 </head>
 <body>
@@ -21,14 +20,14 @@
     <ul>
         {% for topic in course.topics %}
             <li>
-                <strong>{{ topic.name }}</strong>
+                <strong>{{ topic.topic_name }}</strong>
                 <ul>
                     {% for subtopic in topic.subtopics %}
-                        <li>{{ subtopic }}</li>
+                        <li>{{ subtopic.subtopic_name }}</li>
                     {% endfor %}
                 </ul>
             </li>
-        {% endfor %}
-    </ul>
+        {% endfor %}
+    </ul>
 </body>
 </html>

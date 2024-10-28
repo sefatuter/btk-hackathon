@@ -93,26 +93,29 @@ def delete_course(course_id):
 @app.route('/list_course/<int:course_id>', methods=['POST'])
 @login_required
 def list_course(course_id):
-    # Query to get only the 'ai' messages for the given course_id
+    # Retrieve AI message for the course
     ai_messages = ChatHistory.query.filter_by(course_id=course_id, sender="ai").all()
     
     if ai_messages:
+        # Use the latest AI message text to generate data
         latest_ai_message = ai_messages[-1]
         chat_data = {
             'sender': latest_ai_message.sender,
             'text': latest_ai_message.text,
             'timestamp': latest_ai_message.timestamp.isoformat()
         }
-        print('Course Listed Successfully.')
-        new = table(process_json_data(chat_data['text']),course_id=course_id)
-        print(new['course_name'])
-        #print(process_json_data(chat_data['text']))
-        return render_template('list_course.html',course=new)
-        #print(process_json_data(chat_data['text']))
-        #return jsonify(chat_data)
+        
+        # Generate or fetch the course data and save it if necessary
+        course = table(process_json_data(chat_data['text']), course_id=course_id)
+        
+        # Verify course was saved/retrieved successfully
+        if course:
+            return render_template('list_course.html', course=course)
+        else:
+            return jsonify({"error": "Failed to save or retrieve course data"}), 500
     else:
-        print('Cannot Find This Course.')
         return jsonify({"error": "No AI messages found for this course"}), 404
+
 
 
 @app.route('/dashboard/student', methods=['GET', 'POST'])
@@ -160,7 +163,6 @@ def student_dashboard():
     return render_template('student_dashboard.html', historyUser=historyUser, historyAI=historyAI, json_to_table=courses)
 
 
-
 # AI section
 def generate_text(prompt):
     recent_history = ChatHistory.query.order_by(ChatHistory.timestamp.desc()).limit(5).all()
@@ -171,8 +173,11 @@ def generate_text(prompt):
         conversation_context += f"{message.sender.capitalize()}: {message.text}\n"
 
     conversation_context += f"User: {prompt}\nAI:"
-
+    
+    
+    # system_instruction = get_system_instruction(name)
     response = model.generate_content(conversation_context)
+    model.generate_content
     return response.text
 
 
@@ -202,24 +207,24 @@ generation_config = {
 model = genai.GenerativeModel(
   model_name="gemini-1.5-pro",
   generation_config=generation_config,
-#   system_instruction='''Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla:
-# {
-#   "course_code": "<Dersin kodunu buraya yazın>",
-#   "course_name": "<Dersin adını buraya yazın>",
-#   "topics": [
-#     {
-#       "name": "<Ana konu başlığını buraya yazın>",
-#       "subtopics": [
-#         "<Alt konu başlığı 1>",
-#         "<Alt konu başlığı 2>",
-#         "<Alt konu başlığı 3>",
-#         "..."
-#       ]
-#     },
-#     ...
-#   ]
-# }'''  
-  system_instruction='Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla: { "course_code": "<Bu alana dersin kodunu yazın>", "course_name": "<Bu alana dersin adını yazın>", "description": "<Bu alana dersin içeriğini ve amacını açıklayan bir paragraf yazın." }. Eğer sorulan soru ders bilgileriyle alakasızsa, boş bir JSON objesi döndür.' 
+  system_instruction='''Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla:
+    {
+    "course_code": "<Dersin kodunu buraya yazın>",
+    "course_name": "<Dersin adını buraya yazın>",
+    "topics": [
+        {
+        "name": "<Ana konu başlığını buraya yazın>",
+        "subtopics": [
+            "<Alt konu başlığı 1>",
+            "<Alt konu başlığı 2>",
+            "<Alt konu başlığı 3>",
+            "..."
+        ]
+        },
+        ...
+    ]
+    }'''  
+#   system_instruction='Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla: { "course_code": "<Bu alana dersin kodunu yazın>", "course_name": "<Bu alana dersin adını yazın>", "description": "<Bu alana dersin içeriğini ve amacını açıklayan bir paragraf yazın." }. Eğer sorulan soru ders bilgileriyle alakasızsa, boş bir JSON objesi döndür.' 
 )
 
 # Create tables if not exists
@@ -233,30 +238,61 @@ if __name__ == "__main__":
 
 # @app.route('/dashboard/student/table', methods=['GET'])
 def table(raw_data, course_id):
-    
-    existing_course = Course.query.filter(Course.courseInfo.has(CourseInfo.id == course_id)).first()
+    # Check if the course already exists based on `course_id`
+    existing_course = Course.query.filter(Course.course_info.has(CourseInfo.id == course_id)).first()
     if not existing_course:
+        # Generate and process the raw data
         data = generate_text(raw_data)
         data = process_json_data(data)
-
-        course = Course(course_name = data['course_name'],course_code = data['course_code'])
+        
+        # Create a new Course object
+        course = Course(course_name=data['course_name'], course_code=data['course_code'], course_info_id=course_id)
+        
+        # Add topics and subtopics
         for topic_data in data['topics']:
-
             topic = Topic(topic_name=topic_data['name'])
             for subtopic_name in topic_data['subtopics']:
-                subtopic=Subtopic(name=subtopic_name)
+                subtopic = Subtopic(subtopic_name=subtopic_name)
                 topic.subtopics.append(subtopic)
             
-            course.topics.append(topic)    
+            course.topics.append(topic)
+        
+        # Save the new course and its topics/subtopics to the database
         try:
             db.session.add(course)
             db.session.commit()
-            return data
-        except:
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error saving data: {e}")
             return None
-   
-    else:
-        return existing_course
+
+    # Return the course data, whether it was newly created or already existing
+    return existing_course or course
+
     #print(data)
 
 
+# @app.route('/list_course/<int:course_id>', methods=['POST'])
+# @login_required
+# def list_course(course_id):
+#     # Query to get only the 'ai' messages for the given course_id
+#     ai_messages = ChatHistory.query.filter_by(course_id=course_id, sender="ai").all()
+    
+#     if ai_messages:
+#         latest_ai_message = ai_messages[-1]
+#         chat_data = {
+#             'sender': latest_ai_message.sender,
+#             'text': latest_ai_message.text,
+#             'timestamp': latest_ai_message.timestamp.isoformat()
+#         }
+#         print('Course Listed Successfully.')
+#         # table(process_json_data(chat_data['text']))
+#         # print(new['course_name'])
+#         # print(new)
+#         #print(process_json_data(chat_data['text']))
+#         return table(process_json_data(chat_data['text']))
+#         #print(process_json_data(chat_data['text']))
+#         #return jsonify(chat_data)
+#     else:
+#         print('Cannot Find This Course.')
+#         return jsonify({"error": "No AI messages found for this course"}), 404

@@ -27,27 +27,27 @@ class CourseInfo(db.Model):
     __tablename__ = 'course_info'
     id = db.Column(db.Integer, primary_key=True)
     course_code = db.Column(db.String(50), nullable=False)
-    course_name = db.Column(db.String(255), nullable=False)
+    course_name = db.Column(db.Text, nullable=False)
     description = db.Column(db.Text, nullable=False)
     course = db.relationship('Course',backref='course_info',lazy=True,cascade="all, delete-orphan")
 
 class Course(db.Model):
     __tablename__ = 'course'
     id = db.Column(db.Integer, primary_key=True)
-    course_code = db.Column(db.String(10), nullable=False)
-    course_name = db.Column(db.String,nullable = False)
+    course_code = db.Column(db.String(50), nullable=False)
+    course_name = db.Column(db.Text,nullable = False)
     topics = db.relationship('Topic',backref='course', lazy=True, cascade="all, delete-orphan")
     course_info_id = db.Column(db.Integer,db.ForeignKey('course_info.id'), nullable = False)
 
 class Topic(db.Model):
     __tablename__ = 'topic'
     id = db.Column(db.Integer, primary_key=True)
-    topic_name = db.Column(db.String(50), nullable = False)
+    topic_name = db.Column(db.Text, nullable = False)
     subtopics = db.relationship('Subtopic', backref='topic',lazy = True, cascade="all, delete-orphan")
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
     
 class Subtopic(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    subtopic_name= db.Column(db.String(50),nullable = False)
+    subtopic_name= db.Column(db.Text,nullable = False)
     topic_id = db.Column(db.Integer, db.ForeignKey('topic.id'), nullable=False)
 

@@ -13,32 +13,47 @@
         .input-group { display: flex; gap: 10px; margin-top: 20px; }
         input[type="text"] { flex: 1; padding: 10px; }
         button { padding: 10px 15px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
     </style>
 </head>
 <body>
     <h1>Student Dashboard</h1>
 
     <div class="chat-box" id="chat-box">
-        <!-- Render message history -->
-        {% for message in history %}
+        {% set combined_history = historyUser + historyAI %}
+        {% set sorted_history = combined_history | sort(attribute='timestamp') %}
+    
+        {% for message in sorted_history %}
             <div class="message {% if message.sender == 'user' %}user-message{% else %}ai-message{% endif %}">
-                {{ message.text }}
+                {% if message.text in ['```json\n{}\n```', '{}\n', '{}'] %}
+                    <div class="error-message" style="font-weight: bold;">Please Ask About University Courses.</div>
+                {% elif message.sender == 'ai' %}
+                    <div style="font-weight: bold;">Course Added Successfully.</div>
+                    
+                    {# Find the course corresponding to the current AI message #}
+                    {% set course = json_to_table | selectattr("id", "equalto", message.course_id) | list | first %}
+    
+                    {% if course %}
+                        <div>Course Code: {{ course.course_code }}</div>
+                        <div>Course Name: {{ course.course_name }}</div>
+                    {% else %}
+                        <div>Course information not found.</div>
+                    {% endif %}
+                    
+                {% else %}
+                    {{ message.text }}
+                {% endif %}
             </div>
         {% endfor %}
     </div>
+    
 
     <form id="chat-form" class="input-group" action="{{ url_for('student_dashboard') }}" method="post">
         <input type="text" id="user_question" name="user_question" placeholder="Type your message here..." required>
         <button type="submit">Send</button>
     </form>
-
-    <!-- Display AI answers as JSON -->
-    <div id="json-list">
-        <h2>Last Conversation in JSON:</h2>
-        <pre>{{ last_conversation_json|tojson(indent=4) }}</pre>
-        <hr>
-        <pre>{{ json_gemini }}</pre>
-    </div>
 
     <div>
         <h1>University Courses</h1>
@@ -48,19 +63,31 @@
                     <th>Course Code</th>
                     <th>Course Name</th>
                     <th>Description</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 {% for course in json_to_table %}
-                <tr>
-                    <td>{{ course.course_code }}</td>
-                    <td>{{ course.course_name }}</td>
-                    <td>{{ course.description }}</td>
-                </tr>
+                    <tr>
+                        <td>{{ course.course_code }}</td>
+                        <td>{{ course.course_name }}</td>
+                        <td>{{ course.description }}</td>
+                        <td>
+                            <form action="{{ url_for('list_course', course_id=course.id) }}" method="POST" style="display:inline;">
+                                <button type="submit" style="height: 40px; width: 150px; color:white; background-color: green;">
+                                    List Course
+                                </button>
+                            </form>
+                            <form action="{{ url_for('delete_course', course_id=course.id) }}" method="POST" style="display:inline;">
+                                <button type="submit" style="height: 40px; width: 150px; color:white; background-color: red;">
+                                    Delete Course
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-
 </body>
 </html>

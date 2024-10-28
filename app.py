@@ -104,9 +104,10 @@ def list_course(course_id):
             'timestamp': latest_ai_message.timestamp.isoformat()
         }
         print('Course Listed Successfully.')
-        table(process_json_data(chat_data['text']))
-        print(process_json_data(chat_data['text']))
-        return jsonify(chat_data)
+        new = table(process_json_data(chat_data['text']))
+        print(new['course_name'])
+        #print(process_json_data(chat_data['text']))
+        return render_template('list_course.html',course=new)
     else:
         print('Cannot Find This Course.')
         return jsonify({"error": "No AI messages found for this course"}), 404
@@ -215,17 +216,11 @@ model = genai.GenerativeModel(
         "..."
       ]
     },
-    {
-      "name": "<Diğer ana konu başlığını buraya yazın>",
-      "subtopics": [
-        "<Alt konu başlığı 1>",
-        "<Alt konu başlığı 2>",
-        "<Alt konu başlığı 3>",
-        "..."
-      ]
-    }
+    ...
   ]
-}'''  )
+}'''  
+ # system_instruction='Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla: { "course_code": "<Bu alana dersin kodunu yazın>", "course_name": "<Bu alana dersin adını yazın>", "description": "<Bu alana dersin içeriğini ve amacını açıklayan bir paragraf yazın." }. Eğer sorulan soru ders bilgileriyle alakasızsa, boş bir JSON objesi döndür.' 
+)
 
 # Create tables if not exists
 with app.app_context():
@@ -242,8 +237,8 @@ def table(raw_data):
     data = generate_text(raw_data)
 
     data = process_json_data(data)
-
-    print(data)
+    return data
+    #print(data)
 
     # course_counter += 1
     # course = Course(course_name = data['course_name'],course_code = data['course_code'],id = course_counter)

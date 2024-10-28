@@ -28,3 +28,22 @@ class CourseInfo(db.Model):
     course_code = db.Column(db.String(50), nullable=False)
     course_name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=False)
+
+class Course(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True)
+    course_code = db.Column(db.String(10), nullable=False)
+    course_name = db.Column(db.String,nullable = False)
+    topics = db.relationship('Topic',backref='course', lazy=True, cascade="all, delete-orphan")
+
+class Topic(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    topic_name = db.Column(db.String(50), nullable = False)
+    subtopics = db.relationship('Subtopic', backref='topic',lazy = True, cascade="all, delete-orphan")
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    
+class Subtopic(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    subtopic_name= db.Column(db.String(50),nullable = False)
+    topic_id = db.Column(db.Integer, db.ForeignKey('topic.id'), nullable=False)
+

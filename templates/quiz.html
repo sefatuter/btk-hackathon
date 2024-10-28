@@ -1,0 +1,115 @@
+<!-- Navigation Bar -->
+<div style="background-color: #f8f9fa; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+        <a href="{{ url_for('student_dashboard') }}" style="text-decoration: none; color: #007bff; margin-right: 15px;">Dashboard</a>
+        <a href="{{ url_for('list_course', course_id=topic.course.id) }}" style="text-decoration: none; color: #007bff;">Back to Course</a>
+    </div>
+    <div>
+        {% if current_user.is_authenticated %}
+            <span style="margin-right: 15px;">Logged in as: {{ current_user.username }}</span>
+            <form action="{{ url_for('logout') }}" method="POST" style="display: inline;">
+                <button type="submit" style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Logout</button>
+            </form>
+        {% else %}
+            <a href="{{ url_for('login') }}" style="text-decoration: none; color: #007bff; margin-right: 15px;">Login</a>
+            <a href="{{ url_for('register') }}" style="text-decoration: none; color: #007bff;">Register</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quiz Content -->
+<div style="padding: 20px;">
+    {% if is_subtopic_quiz %}
+        <h2>Subtopic Quiz: {{ subtopic.subtopic_name }}</h2>
+        <h3 style="color: #666;">Topic: {{ topic.topic_name }}</h3>
+    {% else %}
+        <h2>Topic Quiz: {{ topic.topic_name }}</h2>
+    {% endif %}
+    
+    {% for question in questions %}
+    <div style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h4>Question {{ loop.index }}: {{ question.question }}</h4>
+        
+        <div style="margin-left: 20px; margin-top: 10px;">
+            <div style="margin-bottom: 10px;">
+                <input type="radio" id="q{{ question.id }}a" name="question{{ question.id }}" value="A">
+                <label for="q{{ question.id }}a" style="margin-left: 10px;">A) {{ question.option_a }}</label>
+            </div>
+            
+            <div style="margin-bottom: 10px;">
+                <input type="radio" id="q{{ question.id }}b" name="question{{ question.id }}" value="B">
+                <label for="q{{ question.id }}b" style="margin-left: 10px;">B) {{ question.option_b }}</label>
+            </div>
+            
+            <div style="margin-bottom: 10px;">
+                <input type="radio" id="q{{ question.id }}c" name="question{{ question.id }}" value="C">
+                <label for="q{{ question.id }}c" style="margin-left: 10px;">C) {{ question.option_c }}</label>
+            </div>
+            
+            <div style="margin-bottom: 10px;">
+                <input type="radio" id="q{{ question.id }}d" name="question{{ question.id }}" value="D">
+                <label for="q{{ question.id }}d" style="margin-left: 10px;">D) {{ question.option_d }}</label>
+            </div>
+        </div>
+        
+        <button onclick="checkAnswer(this)" class="check-answer" 
+                data-question-id="{{ question.id }}" 
+                data-quiz-type="{{ 'subtopic' if is_subtopic_quiz else 'topic' }}"
+                style="background-color: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-top: 10px;">
+            Check Answer
+        </button>
+        
+        <div class="feedback" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
+    </div>
+    {% endfor %}
+
+    <!-- Navigation Path -->
+    <div style="margin-top: 20px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
+        <span>Path: </span>
+        <a href="{{ url_for('student_dashboard') }}" style="color: #007bff; text-decoration: none;">Dashboard</a> &gt; 
+        <a href="{{ url_for('list_course', course_id=topic.course.id) }}" style="color: #007bff; text-decoration: none;">{{ topic.course.course_name }}</a> &gt; 
+        {% if is_subtopic_quiz %}
+            <span>{{ topic.topic_name }}</span> &gt; 
+            <span>Quiz: {{ subtopic.subtopic_name }}</span>
+        {% else %}
+            <span>Quiz: {{ topic.topic_name }}</span>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function checkAnswer(button) {
+    const questionCard = button.closest('div');
+    const questionId = button.dataset.questionId;
+    const quizType = button.dataset.quizType;
+    const selectedAnswer = questionCard.querySelector('input[type="radio"]:checked');
+    
+    if (!selectedAnswer) {
+        alert('Please select an answer first!');
+        return;
+    }
+    
+    fetch('/check_answer', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `question_id=${questionId}&answer=${selectedAnswer.value}&quiz_type=${quizType}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        const feedbackDiv = questionCard.querySelector('.feedback');
+        feedbackDiv.style.display = 'block';
+        
+        if (data.correct) {
+            feedbackDiv.style.backgroundColor = '#d4edda';
+            feedbackDiv.style.color = '#155724';
+            feedbackDiv.textContent = 'Correct!';
+        } else {
+            feedbackDiv.style.backgroundColor = '#f8d7da';
+            feedbackDiv.style.color = '#721c24';
+            feedbackDiv.textContent = `Incorrect. The correct answer is ${data.correct_answer}.`;
+        }
+    });
+}
+</script>

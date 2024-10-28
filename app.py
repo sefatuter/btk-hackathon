@@ -3,7 +3,7 @@ import json
 from flask import Flask, render_template, url_for, flash, redirect, request, jsonify, session
 from flask_login import login_required, login_user, logout_user, UserMixin, LoginManager, current_user
 from forms import RegistrationForm, LoginForm
-from models import db, bcrypt, User, ChatHistory, Course, Topic, Subtopic
+from models import db, bcrypt, User, ChatHistory, CourseInfo, Course, Topic, Subtopic
 from dotenv import load_dotenv
 import requests
 import os
@@ -19,9 +19,7 @@ app.permanent_session_lifetime = timedelta(days=1)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
-course_counter=0
-topic_counter=0
-subtopic_counter=0
+
 # AI Configuration
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
@@ -77,51 +75,142 @@ def logout():
     flash('You have been logged out.', 'success')
     return redirect(url_for('login')) 
 
+@app.route('/delete_course/<int:course_id>', methods=['POST'])
+@login_required
+def delete_course(course_id):
+    course = CourseInfo.query.get(course_id)
+    
+    if course:
+        ChatHistory.query.filter_by(course_id=course.id).delete()
+        db.session.delete(course)
+        db.session.commit()
+        print('Course Deleted Successfully.')
+    else:
+        print('Course not found!')
+
+    return redirect(url_for('student_dashboard'))
+
+@app.route('/list_course/<int:course_id>', methods=['POST'])
+@login_required
+def list_course(course_id):
+    # Query to get only the 'ai' messages for the given course_id
+    ai_messages = ChatHistory.query.filter_by(course_id=course_id, sender="ai").all()
+    
+    if ai_messages:
+        latest_ai_message = ai_messages[-1]
+        chat_data = {
+            'sender': latest_ai_message.sender,
+            'text': latest_ai_message.text,
+            'timestamp': latest_ai_message.timestamp.isoformat()
+        }
+        print('Course Listed Successfully.')
+        print(process_json_data(chat_data['text']))
+        return jsonify(chat_data)
+    else:
+        print('Cannot Find This Course.')
+        return jsonify({"error": "No AI messages found for this course"}), 404
+
+
 @app.route('/dashboard/student', methods=['GET', 'POST'])
 @login_required
 def student_dashboard():
     if request.method == 'POST':
         prompt = request.form.get('user_question')
-        
-        user_message = ChatHistory(sender='user', text=prompt)
-        db.session.add(user_message)
-
         response_text = generate_text(prompt)
-        ai_message = ChatHistory(sender='ai', text=response_text)
-        db.session.add(ai_message)
 
-        db.session.commit()
+        if response_text:
+            # If json data is returns empty
+            if process_json_data(response_text) == {}:
+                invalid_ans = True
+            else:
+                ai_json_response = process_json_data(response_text)
+                existing_course = CourseInfo.query.filter_by(course_code=ai_json_response['course_code']).first()
+                if not existing_course:
+                    course_info = CourseInfo(
+                        course_code=ai_json_response['course_code'],
+                        course_name=ai_json_response['course_name'],
+                        description=ai_json_response['description']
+                    )
+                    db.session.add(course_info)                
+                    db.session.commit()
+                    
+                    user_message = ChatHistory(
+                        sender='user', 
+                        course_id=course_info.id, 
+                        text=prompt)
+                    db.session.add(user_message)
+                    db.session.commit()
 
-        if request.is_json:
-            return jsonify({'user_message': prompt, 'ai_message': response_text})
+                    chat_history_entry = ChatHistory(
+                    course_id=course_info.id,  # Use the newly assigned ID from CourseInfo
+                    sender='ai',
+                    text=response_text
+                    )
+                    db.session.add(chat_history_entry)
+                    db.session.commit()
 
-    history = ChatHistory.query.order_by(ChatHistory.timestamp).all()
-    last_messages = ChatHistory.query.order_by(ChatHistory.timestamp.desc()).limit(1).all()
+    courses= CourseInfo.query.all()
     
-    # Convert the last messages to JSON
-    last_conversation_json = [
-        {'sender': message.sender, 'text': message.text, 'timestamp': message.timestamp.isoformat()}
-        for message in reversed(last_messages)  # Reverse to maintain chronological order
-    ]
+    historyAI = ChatHistory.query.filter_by(sender='ai').order_by(ChatHistory.timestamp).all()
+    historyUser = ChatHistory.query.filter_by(sender='user').order_by(ChatHistory.timestamp).all()
+   
+           
+    return render_template('student_dashboard.html', historyUser=historyUser, historyAI=historyAI, json_to_table=courses)
+
+
+
+# AI section
+def generate_text(prompt):
+    recent_history = ChatHistory.query.order_by(ChatHistory.timestamp.desc()).limit(5).all()
+    recent_history.reverse()
     
-    # if last_conversation_json:
-        # last_text = last_conversation_json[0]['text']
-        # json_gemini = ask_gemini_auto(last_text + ' convert it to json in format : "course_code": "..", "course_name": "...", "description": "..." only.')
+    conversation_context = ""
+    for message in recent_history:
+        conversation_context += f"{message.sender.capitalize()}: {message.text}\n"
 
-        # Clear json_gemini answer
-        # json_text_cleaned = json_gemini.replace('```json\n', '').replace('```', '').strip()
-        # json_data = json.loads(json_text_cleaned)
-        # json_data_list = []
-        # json_data_list.append(json_data)
-        
-        # json_data_list = list(json_data.values())
+    conversation_context += f"User: {prompt}\nAI:"
 
-        # print(json_data_list)
+    response = model.generate_content(conversation_context)
+    return response.text
 
-    # else:
-        # json_gemini = ''
+
+# Get data from JSON file
+def process_json_data(raw_json):
+    json_text_cleaned = raw_json.replace('```json', '').replace('```', '').strip()
+   
+    try:
+        json_text_cleaned = ' '.join(json_text_cleaned.split())
+        json_data = json.loads(json_text_cleaned)
+        return json_data
+    except json.JSONDecodeError as e:
+        print(f"JSON Decode Error: {e}")
+        print(f"Cleaned text was: {json_text_cleaned}")
+        return None
+
+
+# Create the model
+generation_config = {
+  "temperature": 1,
+  "top_p": 0.95,
+  "top_k": 64,
+  "max_output_tokens": 8192,
+  "response_mime_type": "text/plain",
+}
+
+model = genai.GenerativeModel(
+  model_name="gemini-1.5-pro",
+  generation_config=generation_config,
+  system_instruction='Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla: { "course_code": "<Bu alana dersin kodunu yazın>", "course_name": "<Bu alana dersin adını yazın>", "description": "<Bu alana dersin içeriğini ve amacını açıklayan bir paragraf yazın." }. Eğer sorulan soru ders bilgileriyle alakasızsa, boş bir JSON objesi döndür.'
+  )
+
+# Create tables if not exists
+with app.app_context():
+    db.create_all()
     
-    return render_template('student_dashboard.html', history=history, last_conversation_json=last_conversation_json) # json_gemini=json_gemini, json_to_table=json_data_list
+if __name__ == "__main__":
+    app.run(debug=True)
+
+
 
 @app.route('/dashboard/student/<data["course_code"]>', methods=['GET'])
 def table(data):
@@ -144,59 +233,3 @@ def table(data):
         return render_template('course_table.html',course)
     except:
         return None
-    
-
-
-# AI section
-def generate_text(prompt):
-    recent_history = ChatHistory.query.order_by(ChatHistory.timestamp.desc()).limit(5).all()
-    recent_history.reverse()
-    
-    conversation_context = ""
-    for message in recent_history:
-        conversation_context += f"{message.sender.capitalize()}: {message.text}\n"
-
-    conversation_context += f"User: {prompt}\nAI:"
-
-    response = model.generate_content(conversation_context)
-    return response.text
-
-def ask_gemini_auto(prompt):
-    response_auto = model.generate_content(prompt).text
-    # print(response_auto)
-    return response_auto
-
-# Get data from JSON file
-def process_json_data(raw_json):
-    json_text_cleaned = raw_json.replace('```json', '').replace('```', '').strip()
-   
-    try:
-        json_text_cleaned = ' '.join(json_text_cleaned.split())
-        json_data = json.loads(json_text_cleaned)
-        return json_data
-    except json.JSONDecodeError as e:
-        print(f"JSON Decode Error: {e}")
-        print(f"Cleaned text was: {json_text_cleaned}")
-        return None
-
-# Create the model
-generation_config = {
-  "temperature": 1,
-  "top_p": 0.95,
-  "top_k": 64,
-  "max_output_tokens": 8192,
-  "response_mime_type": "text/plain",
-}
-
-model = genai.GenerativeModel(
-  model_name="gemini-1.5-pro",
-  generation_config=generation_config,
-  system_instruction='Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla: { "course_code": "<Bu alana dersin kodunu yazın>", "course_name": "<Bu alana dersin adını yazın,>", "description": "<Bu alana dersin içeriğini ve amacını açıklayan bir paragraf yazın." }'
-  )
-
-# Create tables if not exists
-with app.app_context():
-    db.create_all()
-    
-if __name__ == "__main__":
-    app.run(debug=True)

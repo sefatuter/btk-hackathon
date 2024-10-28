@@ -104,6 +104,7 @@ def list_course(course_id):
             'timestamp': latest_ai_message.timestamp.isoformat()
         }
         print('Course Listed Successfully.')
+        table(process_json_data(chat_data['text']))
         print(process_json_data(chat_data['text']))
         return jsonify(chat_data)
     else:
@@ -200,8 +201,31 @@ generation_config = {
 model = genai.GenerativeModel(
   model_name="gemini-1.5-pro",
   generation_config=generation_config,
-  system_instruction='Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla: { "course_code": "<Bu alana dersin kodunu yazın>", "course_name": "<Bu alana dersin adını yazın>", "description": "<Bu alana dersin içeriğini ve amacını açıklayan bir paragraf yazın." }. Eğer sorulan soru ders bilgileriyle alakasızsa, boş bir JSON objesi döndür.'
-  )
+  system_instruction='''Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla:
+{
+  "course_code": "<Dersin kodunu buraya yazın>",
+  "course_name": "<Dersin adını buraya yazın>",
+  "topics": [
+    {
+      "name": "<Ana konu başlığını buraya yazın>",
+      "subtopics": [
+        "<Alt konu başlığı 1>",
+        "<Alt konu başlığı 2>",
+        "<Alt konu başlığı 3>",
+        "..."
+      ]
+    },
+    {
+      "name": "<Diğer ana konu başlığını buraya yazın>",
+      "subtopics": [
+        "<Alt konu başlığı 1>",
+        "<Alt konu başlığı 2>",
+        "<Alt konu başlığı 3>",
+        "..."
+      ]
+    }
+  ]
+}'''  )
 
 # Create tables if not exists
 with app.app_context():
@@ -212,24 +236,31 @@ if __name__ == "__main__":
 
 
 
-@app.route('/dashboard/student/<data["course_code"]>', methods=['GET'])
-def table(data):
-    course_counter += 1
-    course = Course(course_name = data['course_name'],course_code = data['course_code'],id = course_counter)
-    for topic_data in data['topics']:
-        topic_counter += 1
-        topic = Topic(id=topic_counter,topic_name=topic_data['name'])
-        for subtopic_name in topic_data['subtopics']:
-            subtopic_counter += 1
-            subtopic=Subtopic(name=subtopic_name, id=subtopic_counter)
-            topic.subtopics.append(subtopic)
+# @app.route('/dashboard/student/table', methods=['GET'])
+def table(raw_data):
+
+    data = generate_text(raw_data)
+
+    data = process_json_data(data)
+
+    print(data)
+
+    # course_counter += 1
+    # course = Course(course_name = data['course_name'],course_code = data['course_code'],id = course_counter)
+    # for topic_data in data['topics']:
+    #     topic_counter += 1
+    #     topic = Topic(id=topic_counter,topic_name=topic_data['name'])
+    #     for subtopic_name in topic_data['subtopics']:
+    #         subtopic_counter += 1
+    #         subtopic=Subtopic(name=subtopic_name, id=subtopic_counter)
+    #         topic.subtopics.append(subtopic)
         
-        course.topics.append(topic)
+    #     course.topics.append(topic)
     
 
-    try:
-        db.session.add(course)
-        db.session.commit()
-        return render_template('course_table.html',course)
-    except:
-        return None
+    # try:
+    #     db.session.add(course)
+    #     db.session.commit()
+    #     return render_template('course_table.html',course)
+    # except:
+    #     return None

@@ -108,6 +108,8 @@ def list_course(course_id):
         print(new['course_name'])
         #print(process_json_data(chat_data['text']))
         return render_template('list_course.html',course=new)
+        #print(process_json_data(chat_data['text']))
+        #return jsonify(chat_data)
     else:
         print('Cannot Find This Course.')
         return jsonify({"error": "No AI messages found for this course"}), 404
@@ -119,7 +121,6 @@ def student_dashboard():
     if request.method == 'POST':
         prompt = request.form.get('user_question')
         response_text = generate_text(prompt)
-
         if response_text:
             # If json data is returns empty
             if process_json_data(response_text) == {}:
@@ -142,7 +143,6 @@ def student_dashboard():
                         text=prompt)
                     db.session.add(user_message)
                     db.session.commit()
-
                     chat_history_entry = ChatHistory(
                     course_id=course_info.id,  # Use the newly assigned ID from CourseInfo
                     sender='ai',

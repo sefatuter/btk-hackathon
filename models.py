@@ -15,6 +15,19 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.role}')"
+    
+class ChatHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('course_info.id', ondelete='CASCADE'))  # Link to CourseInfo
+    sender = db.Column(db.String(10), nullable=False)  # 'user' or 'ai'
+    text = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    
+class CourseInfo(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    course_code = db.Column(db.String(50), nullable=False)
+    course_name = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text, nullable=False)
 
 class Course(db.Model):
 
@@ -33,9 +46,3 @@ class Subtopic(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     subtopic_name= db.Column(db.String(50),nullable = False)
     topic_id = db.Column(db.Integer, db.ForeignKey('topic.id'), nullable=False)
-
-class ChatHistory(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    sender = db.Column(db.String(10), nullable=False)  # 'user' or 'ai'
-    text = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)

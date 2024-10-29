@@ -72,3 +72,16 @@ class SubtopicQuiz(db.Model):
     correct_answer = db.Column(db.String(1), nullable=False)
     
     subtopic = db.relationship('Subtopic', backref='quizzes')
+
+class Note(db.Model):
+    __tablename__ = 'note'
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
+    topic_id = db.Column(db.Integer, db.ForeignKey('topic.id'), nullable=False)
+    subtopic_id = db.Column(db.Integer, db.ForeignKey('subtopic.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+    course = db.relationship('Course', backref='notes')
+    topic = db.relationship('Topic', backref='notes')
+    subtopic = db.relationship('Subtopic', backref='notes')

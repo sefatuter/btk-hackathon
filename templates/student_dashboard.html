@@ -64,12 +64,19 @@
                         <td class="student-dashboard-td">{{ course.description }}</td>
                         <td class="student-dashboard-td">
                             <form action="{{ url_for('list_course', course_id=course.id) }}" method="POST" style="display:inline;">
-                                <button type="submit" style="height: 40px; width: 150px; color:white; background-color: green;">
+                                <button type="submit" style="height: 40px; width: 150px; color:white; background-color: green; font-size:small;">
                                     List Course
                                 </button>
                             </form>
+                            <br>
+                            <form action="{{ url_for('create_note', course_id=course.id) }}" method="POST" style="display:inline;"> 
+                                <button type="submit" style="height: 40px; width: 150px; color:white; background-color: rgb(0, 77, 128); font-size:small;"> 
+                                    Create Lecture Note 
+                                </button> 
+                            </form>
+                            <br>
                             <form action="{{ url_for('delete_course', course_id=course.id) }}" method="POST" style="display:inline;">
-                                <button type="submit" style="height: 40px; width: 150px; color:white; background-color: red;">
+                                <button type="submit" style="height: 40px; width: 150px; color:white; background-color: red; font-size:small;">
                                     Delete Course
                                 </button>
                             </form>

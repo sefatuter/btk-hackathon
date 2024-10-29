@@ -3,12 +3,14 @@ import json
 from flask import Flask, render_template, url_for, flash, redirect, request, jsonify, session
 from flask_login import login_required, login_user, logout_user, UserMixin, LoginManager, current_user
 from forms import RegistrationForm, LoginForm
-from models import db, bcrypt, User, ChatHistory, CourseInfo, Course, Topic, Subtopic, Quiz, SubtopicQuiz
+from models import db, bcrypt, User, ChatHistory, CourseInfo, Course, Topic, Subtopic, Quiz, SubtopicQuiz, Note
 from dotenv import load_dotenv
 import requests
 import os
 import google.generativeai as genai
-from gemini import generation_config, model1, model2, model3, model4
+from gemini import generation_config, model1, model2, model3, model4, model5
+from markdown2 import Markdown
+from markupsafe import Markup
 
 load_dotenv()
 app = Flask(__name__)
@@ -78,16 +80,52 @@ def logout():
 @app.route('/delete_course/<int:course_id>', methods=['GET', 'POST'])
 @login_required
 def delete_course(course_id):
-    course = CourseInfo.query.get(course_id)
-    
-    if course:
-        ChatHistory.query.filter_by(course_id=course.id).delete()
-        db.session.delete(course)
-        db.session.commit()
-        print('Course Deleted Successfully.')
-    else:
-        print('Course not found!')
+    try:
+        course_info = CourseInfo.query.get(course_id)
+        
+        if course_info:
+            # Get the associated course record
+            course = Course.query.filter_by(course_info_id=course_id).first()
+            
+            if course:
+                # Delete all associated records in the correct order
+                for topic in course.topics:
+                    # Delete quizzes associated with the topic
+                    Quiz.query.filter_by(topic_id=topic.id).delete()
+                    
+                    # Delete subtopic quizzes
+                    for subtopic in topic.subtopics:
+                        SubtopicQuiz.query.filter_by(subtopic_id=subtopic.id).delete()
+                        
+                        # Delete notes associated with subtopics
+                        Note.query.filter_by(topic_id=topic.id).delete()
+                        
+                        # Delete the subtopic
+                        db.session.delete(subtopic)
+                    
+                    # Delete the topic
+                    db.session.delete(topic)
+                
+                # Delete the course
+                db.session.delete(course)
+            
+            # Delete chat history
+            ChatHistory.query.filter_by(course_id=course_info.id).delete()
+            
+            # Delete the course info
+            db.session.delete(course_info)
+            
+            # Commit all changes
+            db.session.commit()
+            flash('Course and all related data deleted successfully.', 'success')
+        else:
+            flash('Course not found!', 'error')
 
+    except Exception as e:
+        db.session.rollback()
+        print(f'Error deleting course: {str(e)}')
+        flash('An error occurred while deleting the course.', 'error')
+    
     return redirect(url_for('student_dashboard'))
 
 @app.route('/list_course/<int:course_id>', methods=['GET', 'POST'])
@@ -252,7 +290,6 @@ def generate_topic_quiz(topic_id):
         flash('An error occurred while generating the quiz.', 'danger')
         return redirect(url_for('student_dashboard'))
 
-
 @app.route('/take_topic_quiz/<int:topic_id>', methods=['GET', 'POST'])
 @login_required
 def take_topic_quiz(topic_id):
@@ -358,6 +395,110 @@ def check_answer():
         'correct': is_correct,
         'correct_answer': question.correct_answer
     })
+    
+  
+@app.route('/create_note/<int:course_id>', methods=['GET', 'POST'])
+def create_note(course_id):
+    try:
+        # First get the CourseInfo
+        course_info = CourseInfo.query.get(course_id)
+        if course_info is None:
+            flash('Course not found!', 'error')
+            return redirect(url_for('student_dashboard'))
+        
+        # Create markdown converter with math support
+        markdowner = Markdown(extras={
+            'fenced-code-blocks': None,
+            'tables': None,
+            'break-on-newline': True,
+            'header-ids': None,
+            'markdown-in-html': True,
+            'math': None
+        })
+
+        # Then get the associated Course
+        course = Course.query.filter_by(course_info_id=course_id).first()
+        if course is None:
+            flash('Course details not found!', 'error')
+            return redirect(url_for('student_dashboard'))
+
+        # Prepare topics and subtopics data
+        topics_with_subtopics = [
+            {
+                "topic_name": topic.topic_name,
+                "subtopics": [subtopic.subtopic_name for subtopic in topic.subtopics]
+            }
+            for topic in course.topics
+        ]
+        
+        # Form data handling
+        selected_topic = request.form.get('topic')
+        selected_subtopic = request.form.get('subtopic')
+        subtopics = []
+        lecture_note = None
+
+        if selected_topic:
+            topic = next((t for t in course.topics if t.topic_name == selected_topic), None)
+            if topic:
+                subtopics = [subtopic.subtopic_name for subtopic in topic.subtopics]
+
+                if selected_subtopic:
+                    subtopic = next((s for s in topic.subtopics if s.subtopic_name == selected_subtopic), None)
+
+                    if subtopic:
+                        # Check if the note already exists
+                        existing_note = Note.query.filter_by(
+                            course_id=course.id,  # Use course.id instead of course_id
+                            topic_id=topic.id,
+                            subtopic_id=subtopic.id
+                        ).first()
+
+                        if existing_note:
+                            # Use the existing note
+                            lecture_note = existing_note.content
+                        else:
+                            try:
+                                # Generate a new note if it doesn't exist
+                                prompt = f"{selected_topic} - {selected_subtopic} hakkında ders notu istiyorum."
+                                lecture_note = generate_text(prompt, model=model5)
+                                
+                                # Convert markdown to HTML
+                                html_content = markdowner.convert(lecture_note)
+                                
+                                # Make it safe for rendering
+                                lecture_note = Markup(html_content)
+                                                            
+                                # Save the generated note to the database
+                                new_note = Note(
+                                    content=lecture_note,
+                                    course_id=course.id,  # Use course.id instead of course_id
+                                    topic_id=topic.id,
+                                    subtopic_id=subtopic.id
+                                )
+                                db.session.add(new_note)
+                                db.session.commit()
+                                flash('Note created successfully!', 'success')
+                            except Exception as e:
+                                db.session.rollback()
+                                flash(f'Error creating note: {str(e)}', 'error')
+                                return redirect(url_for('create_note', course_id=course_id))
+
+        
+        # Render the template with generated note content
+        return render_template(
+            "create_note.html",
+            course_id=course_id,
+            course_name=course_info.course_name,
+            topics_with_subtopics=topics_with_subtopics,
+            selected_topic=selected_topic,
+            subtopics=subtopics,
+            note_content=lecture_note
+        )
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'An error occurred: {str(e)}', 'error')
+        return redirect(url_for('student_dashboard'))
 
 # AI section
 

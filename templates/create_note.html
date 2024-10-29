@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Create Note{% endblock %}
+
+{% block styles %}
+<style>
+.note-content {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.note-content h2 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.note-content p {
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.note-content strong {
+    color: #444;
+}
+
+.math {
+    overflow-x: auto;
+    padding: 10px 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <a href="{{ url_for('student_dashboard') }}" class="btn btn-primary btn-sm mb-1">Dashboard</a>
+</div>
+
+<div class="container mt-4">
+    <h1>Create Note for: {{ course_name }}</h1>
+    
+    <form action="{{ url_for('create_note', course_id=course_id) }}" method="POST">
+        <div class="form-group mb-3">
+            <label for="topicSelect">Select Topic</label>
+            <select class="form-control" id="topicSelect" name="topic" required onchange="this.form.submit()">
+                <option value="">Choose a Topic</option>
+                {% for topic in topics_with_subtopics %}
+                    <option value="{{ topic.topic_name }}" {% if topic.topic_name == selected_topic %}selected{% endif %}>
+                        {{ topic.topic_name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {% if selected_topic %}
+        <div class="form-group mb-3">
+            <label for="subtopicSelect">Select Subtopic</label>
+            <select class="form-control" id="subtopicSelect" name="subtopic" required>
+                <option value="">Choose a Subtopic</option>
+                {% for subtopic in subtopics %}
+                    <option value="{{ subtopic }}" {% if subtopic == selected_subtopic %}selected{% endif %}>
+                        {{ subtopic }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+
+        {% if selected_topic %}
+        <button type="submit" class="btn btn-primary" style="height: 40px; width: 150px; font-size: small;">
+            Get Lecture Note
+        </button>
+        {% endif %}
+    </form>
+
+    {% if note_content %}
+    <div class="mt-4">
+        <h3>Generated Lecture Note:</h3>
+        <div class="note-content">
+            {{ note_content | safe }}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

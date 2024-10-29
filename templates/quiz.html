@@ -10,7 +10,7 @@
 <div style="background-color: #f8f9fa; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
     <div>
         <a href="{{ url_for('student_dashboard') }}" style="text-decoration: none; color: #007bff; margin-right: 15px;">Dashboard</a>
-        <a href="{{ url_for('list_course', course_id=topic.course.id) }}" style="text-decoration: none; color: #007bff;">Back to Course</a>
+        <a href="{{ url_for('list_course', course_id=topic.course.course_info.id) }}" style="text-decoration: none; color: #007bff;">Back to Course</a>
     </div>
     <div>
         {% if current_user.is_authenticated %}

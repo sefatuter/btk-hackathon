@@ -3,25 +3,25 @@ import json
 from flask import Flask, render_template, url_for, flash, redirect, request, jsonify, session
 from flask_login import login_required, login_user, logout_user, UserMixin, LoginManager, current_user
 from forms import RegistrationForm, LoginForm
-from models import db, bcrypt, User, ChatHistory, CourseInfo, Course, Topic, Subtopic
+from models import db, bcrypt, User, ChatHistory, CourseInfo, Course, Topic, Subtopic, Quiz, SubtopicQuiz
 from dotenv import load_dotenv
 import requests
 import os
 import google.generativeai as genai
-
+from gemini import generation_config, model1, model2, model3, model4
 
 load_dotenv()
 app = Flask(__name__)
+login_manager = LoginManager()
+genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+
 app.config.from_object('config.Config')
 db.init_app(app)
 bcrypt.init_app(app)
-app.permanent_session_lifetime = timedelta(days=1)
-login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+app.permanent_session_lifetime = timedelta(days=1)
 
-# AI Configuration
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
 @app.route('/')
 def index():
@@ -75,7 +75,7 @@ def logout():
     flash('You have been logged out.', 'success')
     return redirect(url_for('login')) 
 
-@app.route('/delete_course/<int:course_id>', methods=['POST'])
+@app.route('/delete_course/<int:course_id>', methods=['GET', 'POST'])
 @login_required
 def delete_course(course_id):
     course = CourseInfo.query.get(course_id)
@@ -90,7 +90,7 @@ def delete_course(course_id):
 
     return redirect(url_for('student_dashboard'))
 
-@app.route('/list_course/<int:course_id>', methods=['POST'])
+@app.route('/list_course/<int:course_id>', methods=['GET', 'POST'])
 @login_required
 def list_course(course_id):
     # Retrieve AI message for the course
@@ -116,7 +116,36 @@ def list_course(course_id):
     else:
         return jsonify({"error": "No AI messages found for this course"}), 404
 
+def table(raw_data, course_id):
+    # Check if the course already exists based on `course_id`
+    existing_course = Course.query.filter(Course.course_info.has(CourseInfo.id == course_id)).first()
+    if not existing_course:
+        # Generate and process the raw data
+        data = generate_text(raw_data, model=model2)
+        data = process_json_data(data)
+        
+        # Create a new Course object
+        course = Course(course_name=data['course_name'], course_code=data['course_code'], course_info_id=course_id)
+        
+        # Add topics and subtopics
+        for topic_data in data['topics']:
+            topic = Topic(topic_name=topic_data['name'])
+            for subtopic_name in topic_data['subtopics']:
+                subtopic = Subtopic(subtopic_name=subtopic_name)
+                topic.subtopics.append(subtopic)
+            
+            course.topics.append(topic)
+        
+        try:
+            db.session.add(course)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error saving data: {e}")
+            return None
 
+    # Return the course data, whether it was newly created or already existing
+    return existing_course or course
 
 @app.route('/dashboard/student', methods=['GET', 'POST'])
 @login_required
@@ -162,8 +191,176 @@ def student_dashboard():
            
     return render_template('student_dashboard.html', historyUser=historyUser, historyAI=historyAI, json_to_table=courses)
 
+@app.route('/chatbot', methods=['GET', 'POST'])
+def chatbot():
+    if request.method == 'POST':
+        data = request.get_json()
+        user_message = data.get('message')
+        
+        # Generate response using model3
+        ai_response = generate_text(user_message, model=model4)
+        
+        return jsonify({'response': ai_response})
+    
+    return render_template('chat_ai.html')
+
+@app.route('/generate_topic_quiz/<int:topic_id>', methods=['POST'])
+@login_required
+def generate_topic_quiz(topic_id):
+    try:
+        # Check if quiz already exists for this topic
+        existing_quiz = Quiz.query.filter_by(topic_id=topic_id).first()
+        
+        if existing_quiz:
+            flash('A quiz for this topic already exists.', 'info')
+            return redirect(url_for('take_topic_quiz', topic_id=topic_id))
+        
+        # Proceed with quiz generation if no quiz exists
+        topic = Topic.query.get_or_404(topic_id)
+        course_code = topic.course.course_code
+        course_name = topic.course.course_name
+        
+        subtopics_text = ", ".join([st.subtopic_name for st in topic.subtopics])
+        prompt = f"Generate 10 multiple choice questions about {course_code} - {course_name} - {topic.topic_name}. Include topics: {subtopics_text}."
+        
+        response = generate_text(prompt, model=model3)
+        questions_data = process_json_data(response)
+        
+        if questions_data and 'questions' in questions_data:
+            # Add quiz questions
+            for q_data in questions_data['questions']:
+                quiz = Quiz(
+                    topic_id=topic_id,
+                    question=q_data['question'],
+                    option_a=q_data['options'][0][3:],
+                    option_b=q_data['options'][1][3:],
+                    option_c=q_data['options'][2][3:],
+                    option_d=q_data['options'][3][3:],
+                    correct_answer=q_data['correct']
+                )
+                db.session.add(quiz)
+            
+            db.session.commit()
+            flash('Quiz generated successfully!', 'success')
+            return redirect(url_for('take_topic_quiz', topic_id=topic_id))
+        
+        flash('Failed to generate quiz questions.', 'danger')
+        return redirect(url_for('list_course', course_id=topic.course_id))
+        
+    except Exception as e:
+        print(f"Error in generate_topic_quiz: {str(e)}")
+        flash('An error occurred while generating the quiz.', 'danger')
+        return redirect(url_for('student_dashboard'))
+
+
+@app.route('/take_topic_quiz/<int:topic_id>', methods=['GET', 'POST'])
+@login_required
+def take_topic_quiz(topic_id):
+    try:
+        topic = Topic.query.get_or_404(topic_id)
+        questions = Quiz.query.filter_by(topic_id=topic_id).all()
+        
+        if not questions:
+            flash('No quiz questions available for this topic.', 'warning')
+            return redirect(url_for('list_course', course_id=topic.course_id))
+            
+        return render_template('quiz.html', topic=topic, questions=questions, is_subtopic_quiz=False)
+        
+    except Exception as e:
+        print(f"Error in take_topic_quiz: {str(e)}")
+        flash('An error occurred while loading the quiz.', 'danger')
+        return redirect(url_for('student_dashboard'))
+
+@app.route('/generate_subtopic_quiz/<int:subtopic_id>', methods=['POST'])
+@login_required
+def generate_subtopic_quiz(subtopic_id):
+    try:
+        print(f"Starting generate_subtopic_quiz for subtopic_id: {subtopic_id}")
+        
+        subtopic = Subtopic.query.get_or_404(subtopic_id)
+        print(f"Found subtopic: {subtopic.subtopic_name}")
+        
+        topic = Topic.query.get(subtopic.topic_id)
+        print(f"Found topic: {topic.topic_name}")
+        
+        prompt = f"Generate 5 multiple choice questions specifically about {subtopic.subtopic_name}, which is a subtopic of {topic.topic_name}."
+        
+        response = generate_text(prompt, model=model3)
+        print(f"Got Gemini response: {response[:100]}...")
+        
+        questions_data = process_json_data(response)
+        print(f"Processed questions data: {questions_data is not None}")
+        
+        if questions_data and 'questions' in questions_data:
+            SubtopicQuiz.query.filter_by(subtopic_id=subtopic_id).delete()
+            
+            for q_data in questions_data['questions']:
+                quiz = SubtopicQuiz(
+                    subtopic_id=subtopic_id,
+                    question=q_data['question'],
+                    option_a=q_data['options'][0][3:],
+                    option_b=q_data['options'][1][3:],
+                    option_c=q_data['options'][2][3:],
+                    option_d=q_data['options'][3][3:],
+                    correct_answer=q_data['correct']
+                )
+                db.session.add(quiz)
+            
+            db.session.commit()
+            print("Successfully saved quiz questions")
+            
+            return redirect(url_for('take_subtopic_quiz', subtopic_id=subtopic_id))
+        
+        print("Failed to generate or process questions")
+        flash('Failed to generate quiz questions.', 'danger')
+        return redirect(url_for('list_course', course_id=topic.course_id))
+        
+    except Exception as e:
+        print(f"Error in generate_subtopic_quiz: {str(e)}")
+        flash('An error occurred while generating the quiz.', 'danger')
+        return redirect(url_for('student_dashboard'))
+
+@app.route('/take_subtopic_quiz/<int:subtopic_id>')
+@login_required
+def take_subtopic_quiz(subtopic_id):
+    try:
+        subtopic = Subtopic.query.get_or_404(subtopic_id)
+        topic = Topic.query.get(subtopic.topic_id)
+        questions = SubtopicQuiz.query.filter_by(subtopic_id=subtopic_id).all()
+        
+        if not questions:
+            flash('No quiz questions available for this subtopic.', 'warning')
+            return redirect(url_for('list_course', course_id=topic.course_id))
+            
+        return render_template('quiz.html', topic=topic, subtopic=subtopic, questions=questions, is_subtopic_quiz=True)
+        
+    except Exception as e:
+        print(f"Error in take_subtopic_quiz: {str(e)}")
+        flash('An error occurred while loading the quiz.', 'danger')
+        return redirect(url_for('student_dashboard'))
+
+
+@app.route('/check_answer', methods=['POST'])
+@login_required
+def check_answer():
+    question_id = request.form.get('question_id')
+    selected_answer = request.form.get('answer')
+    quiz_type = request.form.get('quiz_type', 'topic')
+    
+    if quiz_type == 'subtopic':
+        question = SubtopicQuiz.query.get_or_404(question_id)
+    else:
+        question = Quiz.query.get_or_404(question_id)
+        
+    is_correct = question.correct_answer == selected_answer
+    
+    return jsonify({
+        'correct': is_correct,
+        'correct_answer': question.correct_answer
+    })
 
 # AI section
+
 def generate_text(prompt, model):
     recent_history = ChatHistory.query.order_by(ChatHistory.timestamp.desc()).limit(5).all()
     recent_history.reverse()
@@ -174,8 +371,6 @@ def generate_text(prompt, model):
 
     conversation_context += f"User: {prompt}\nAI:"
     
-    
-    # system_instruction = get_system_instruction(name)
     response = model.generate_content(conversation_context)
     model.generate_content
     return response.text
@@ -195,122 +390,9 @@ def process_json_data(raw_json):
         return None
 
 
-# Create the model
-generation_config = {
-  "temperature": 1,
-  "top_p": 0.95,
-  "top_k": 64,
-  "max_output_tokens": 8192,
-  "response_mime_type": "text/plain",
-}
-
-# Course Model
-model1 = genai.GenerativeModel(
-  model_name="gemini-1.5-pro",
-  generation_config=generation_config,
-  system_instruction='Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla: { "course_code": "<Bu alana dersin kodunu yazın>", "course_name": "<Bu alana dersin adını yazın>", "description": "<Bu alana dersin içeriğini ve amacını açıklayan bir paragraf yazın." }. Eğer sorulan soru ders bilgileriyle alakasızsa, boş bir JSON objesi döndür.' 
-)
-
-# Listing Model
-model2 = genai.GenerativeModel(
-  model_name="gemini-1.5-pro",
-  generation_config=generation_config,
-  system_instruction='''Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla:
-    {
-    "course_code": "<Dersin kodunu buraya yazın>",
-    "course_name": "<Dersin adını buraya yazın>",
-    "topics": [
-        {
-        "name": "<Ana konu başlığını buraya yazın>",
-        "subtopics": [
-            "<Alt konu başlığı 1>",
-            "<Alt konu başlığı 2>",
-            "<Alt konu başlığı 3>",
-            "..."
-        ]
-        },
-        ...
-    ]
-    }'''  
-)
-
-# Quiz Model
-model3 = genai.GenerativeModel(
-  model_name="gemini-1.5-pro",
-  generation_config=generation_config,
-  system_instruction='''Tüm yanıtlarını ders bilgileri için belirlediğim özel JSON formatında ver. Bu format dışında hiçbir bilgi ekleme ve sadece istenilen JSON objesini döndür. Sorulan her dersle ilgili bilgiyi aşağıdaki formata uygun şekilde cevapla:
-    {
-    }'''  
-)
-
-
-
 # Create tables if not exists
 with app.app_context():
     db.create_all()
     
 if __name__ == "__main__":
     app.run(debug=True)
-
-
-
-# @app.route('/dashboard/student/table', methods=['GET'])
-def table(raw_data, course_id):
-    # Check if the course already exists based on `course_id`
-    existing_course = Course.query.filter(Course.course_info.has(CourseInfo.id == course_id)).first()
-    if not existing_course:
-        # Generate and process the raw data
-        data = generate_text(raw_data, model=model2)
-        data = process_json_data(data)
-        
-        # Create a new Course object
-        course = Course(course_name=data['course_name'], course_code=data['course_code'], course_info_id=course_id)
-        
-        # Add topics and subtopics
-        for topic_data in data['topics']:
-            topic = Topic(topic_name=topic_data['name'])
-            for subtopic_name in topic_data['subtopics']:
-                subtopic = Subtopic(subtopic_name=subtopic_name)
-                topic.subtopics.append(subtopic)
-            
-            course.topics.append(topic)
-        
-        # Save the new course and its topics/subtopics to the database
-        try:
-            db.session.add(course)
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-            print(f"Error saving data: {e}")
-            return None
-
-    # Return the course data, whether it was newly created or already existing
-    return existing_course or course
-
-    #print(data)
-
-
-# @app.route('/list_course/<int:course_id>', methods=['POST'])
-# @login_required
-# def list_course(course_id):
-#     # Query to get only the 'ai' messages for the given course_id
-#     ai_messages = ChatHistory.query.filter_by(course_id=course_id, sender="ai").all()
-    
-#     if ai_messages:
-#         latest_ai_message = ai_messages[-1]
-#         chat_data = {
-#             'sender': latest_ai_message.sender,
-#             'text': latest_ai_message.text,
-#             'timestamp': latest_ai_message.timestamp.isoformat()
-#         }
-#         print('Course Listed Successfully.')
-#         # table(process_json_data(chat_data['text']))
-#         # print(new['course_name'])
-#         # print(new)
-#         #print(process_json_data(chat_data['text']))
-#         return table(process_json_data(chat_data['text']))
-#         #print(process_json_data(chat_data['text']))
-#         #return jsonify(chat_data)
-#     else:
-#         print('Cannot Find This Course.')
-#         return jsonify({"error": "No AI messages found for this course"}), 404

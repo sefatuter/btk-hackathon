@@ -11,6 +11,7 @@ import google.generativeai as genai
 from gemini import generation_config, model1, model2, model3, model4, model5
 from markdown2 import Markdown
 from markupsafe import Markup
+import random
 
 load_dotenv()
 app = Flask(__name__)
@@ -24,6 +25,25 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 app.permanent_session_lifetime = timedelta(days=1)
 
+def process_and_randomize_quiz(questions_data):
+    """Helper function to process quiz data and randomize answers"""
+    if not questions_data or 'questions' not in questions_data:
+        return None
+        
+    for question in questions_data['questions']:
+        # Get the correct answer's content
+        correct_option = question['options'][ord(question['correct']) - ord('A')]
+        
+        # Randomly shuffle the options
+        random.shuffle(question['options'])
+        
+        # Find the new position of the correct answer
+        for i, option in enumerate(question['options']):
+            if option == correct_option:
+                question['correct'] = chr(ord('A') + i)
+                break
+    
+    return questions_data
 
 @app.route('/')
 def index():
@@ -246,48 +266,84 @@ def chatbot():
 @login_required
 def generate_topic_quiz(topic_id):
     try:
-        # Check if quiz already exists for this topic
+        # Check if quiz already exists
         existing_quiz = Quiz.query.filter_by(topic_id=topic_id).first()
+        session_key = f'quiz_topic_{topic_id}'
         
-        if existing_quiz:
-            flash('A quiz for this topic already exists.', 'info')
+        if existing_quiz or session.get(session_key):
             return redirect(url_for('take_topic_quiz', topic_id=topic_id))
         
-        # Proceed with quiz generation if no quiz exists
         topic = Topic.query.get_or_404(topic_id)
-        course_code = topic.course.course_code
-        course_name = topic.course.course_name
         
-        subtopics_text = ", ".join([st.subtopic_name for st in topic.subtopics])
-        prompt = f"Generate 10 multiple choice questions about {course_code} - {course_name} - {topic.topic_name}. Include topics: {subtopics_text}."
+        # Create a more generic prompt
+        prompt = f"""Please create 10 multiple choice questions in JSON format about {topic.topic_name}. 
+        Focus on fundamental concepts and general understanding.
+        Each question should have 4 options (A, B, C, D) and indicate the correct answer.
         
-        response = generate_text(prompt, model=model3)
-        questions_data = process_json_data(response)
+        The response should be in this exact JSON format:
+        {{
+            "questions": [
+                {{
+                    "question": "What is...",
+                    "options": [
+                        "A) First option",
+                        "B) Second option",
+                        "C) Third option",
+                        "D) Fourth option"
+                    ],
+                    "correct": "A"
+                }},
+                ...
+            ]
+        }}"""
         
-        if questions_data and 'questions' in questions_data:
-            # Add quiz questions
-            for q_data in questions_data['questions']:
-                quiz = Quiz(
-                    topic_id=topic_id,
-                    question=q_data['question'],
-                    option_a=q_data['options'][0][3:],
-                    option_b=q_data['options'][1][3:],
-                    option_c=q_data['options'][2][3:],
-                    option_d=q_data['options'][3][3:],
-                    correct_answer=q_data['correct']
-                )
-                db.session.add(quiz)
+        try:
+            response = generate_text(prompt, model=model3)
+            questions_data = process_json_data(response)
             
-            db.session.commit()
-            flash('Quiz generated successfully!', 'success')
-            return redirect(url_for('take_topic_quiz', topic_id=topic_id))
-        
-        flash('Failed to generate quiz questions.', 'danger')
-        return redirect(url_for('list_course', course_id=topic.course_id))
-        
+            if not questions_data or 'questions' not in questions_data:
+                # Fallback to simplified prompt if first attempt fails
+                fallback_prompt = f"""Create 10 basic multiple choice questions about {topic.topic_name}.
+                Focus only on fundamental concepts. Return in JSON format with question, options, and correct answer."""
+                
+                response = generate_text(fallback_prompt, model=model3)
+                questions_data = process_json_data(response)
+            
+            # Randomize the answers
+            questions_data = process_and_randomize_quiz(questions_data)
+            
+            if questions_data and 'questions' in questions_data:
+                # Delete any existing quiz
+                Quiz.query.filter_by(topic_id=topic_id).delete()
+                
+                for q_data in questions_data['questions']:
+                    quiz = Quiz(
+                        topic_id=topic_id,
+                        question=q_data['question'],
+                        option_a=q_data['options'][0][3:],
+                        option_b=q_data['options'][1][3:],
+                        option_c=q_data['options'][2][3:],
+                        option_d=q_data['options'][3][3:],
+                        correct_answer=q_data['correct']
+                    )
+                    db.session.add(quiz)
+                
+                db.session.commit()
+                flash('Quiz generated successfully!', 'success')
+                return redirect(url_for('take_topic_quiz', topic_id=topic_id))
+            
+            flash('Unable to generate quiz questions. Please try again.', 'warning')
+            return redirect(url_for('list_course', course_id=topic.course.course_info.id))
+            
+        except Exception as e:
+            print(f"Generation error: {str(e)}")
+            db.session.rollback()
+            flash('Error generating quiz questions. Please try again.', 'danger')
+            return redirect(url_for('list_course', course_id=topic.course.course_info.id))
+            
     except Exception as e:
         print(f"Error in generate_topic_quiz: {str(e)}")
-        flash('An error occurred while generating the quiz.', 'danger')
+        flash('An error occurred. Please try again.', 'danger')
         return redirect(url_for('student_dashboard'))
 
 @app.route('/take_topic_quiz/<int:topic_id>', methods=['GET', 'POST'])
@@ -295,11 +351,32 @@ def generate_topic_quiz(topic_id):
 def take_topic_quiz(topic_id):
     try:
         topic = Topic.query.get_or_404(topic_id)
-        questions = Quiz.query.filter_by(topic_id=topic_id).all()
+        
+        # Try to get existing quiz from session
+        session_key = f'quiz_topic_{topic_id}'
+        questions = session.get(session_key)
         
         if not questions:
-            flash('No quiz questions available for this topic.', 'warning')
-            return redirect(url_for('list_course', course_id=topic.course_id))
+            # If no quiz in session, get from database
+            questions = Quiz.query.filter_by(topic_id=topic_id).all()
+            
+            if not questions:
+                flash('No quiz questions available for this topic.', 'warning')
+                return redirect(url_for('list_course', course_id=topic.course.course_info.id))
+            
+            # Store questions in session
+            session[session_key] = [
+                {
+                    'id': q.id,
+                    'question': q.question,
+                    'option_a': q.option_a,
+                    'option_b': q.option_b,
+                    'option_c': q.option_c,
+                    'option_d': q.option_d,
+                    'correct_answer': q.correct_answer
+                }
+                for q in questions
+            ]
             
         return render_template('quiz.html', topic=topic, questions=questions, is_subtopic_quiz=False)
         
@@ -312,49 +389,84 @@ def take_topic_quiz(topic_id):
 @login_required
 def generate_subtopic_quiz(subtopic_id):
     try:
-        print(f"Starting generate_subtopic_quiz for subtopic_id: {subtopic_id}")
+        existing_quiz = SubtopicQuiz.query.filter_by(subtopic_id=subtopic_id).first()
+        session_key = f'quiz_subtopic_{subtopic_id}'
         
         subtopic = Subtopic.query.get_or_404(subtopic_id)
-        print(f"Found subtopic: {subtopic.subtopic_name}")
-        
         topic = Topic.query.get(subtopic.topic_id)
-        print(f"Found topic: {topic.topic_name}")
         
-        prompt = f"Generate 5 multiple choice questions specifically about {subtopic.subtopic_name}, which is a subtopic of {topic.topic_name}."
+        prompt = f"""Create 5 multiple choice questions in JSON format about {subtopic.subtopic_name}.
+        Focus on testing understanding of basic concepts related to this specific subtopic.
+        Each question should have 4 options (A, B, C, D) and indicate the correct answer.
         
-        response = generate_text(prompt, model=model3)
-        print(f"Got Gemini response: {response[:100]}...")
+        The response should be in this exact JSON format:
+        {{
+            "questions": [
+                {{
+                    "question": "What is...",
+                    "options": [
+                        "A) First option",
+                        "B) Second option",
+                        "C) Third option",
+                        "D) Fourth option"
+                    ],
+                    "correct": "A"
+                }},
+                ...
+            ]
+        }}"""
         
-        questions_data = process_json_data(response)
-        print(f"Processed questions data: {questions_data is not None}")
-        
-        if questions_data and 'questions' in questions_data:
-            SubtopicQuiz.query.filter_by(subtopic_id=subtopic_id).delete()
+        try:
+            response = generate_text(prompt, model=model3)
+            questions_data = process_json_data(response)
             
-            for q_data in questions_data['questions']:
-                quiz = SubtopicQuiz(
-                    subtopic_id=subtopic_id,
-                    question=q_data['question'],
-                    option_a=q_data['options'][0][3:],
-                    option_b=q_data['options'][1][3:],
-                    option_c=q_data['options'][2][3:],
-                    option_d=q_data['options'][3][3:],
-                    correct_answer=q_data['correct']
-                )
-                db.session.add(quiz)
+            if not questions_data or 'questions' not in questions_data:
+                fallback_prompt = f"""Generate 5 basic multiple choice questions about {subtopic.subtopic_name}.
+                Focus on fundamental concepts only. Return in JSON format with question, options, and correct answer."""
+                
+                response = generate_text(fallback_prompt, model=model3)
+                questions_data = process_json_data(response)
             
-            db.session.commit()
-            print("Successfully saved quiz questions")
+            # Randomize the answers
+            questions_data = process_and_randomize_quiz(questions_data)
             
-            return redirect(url_for('take_subtopic_quiz', subtopic_id=subtopic_id))
-        
-        print("Failed to generate or process questions")
-        flash('Failed to generate quiz questions.', 'danger')
-        return redirect(url_for('list_course', course_id=topic.course_id))
-        
+            if questions_data and 'questions' in questions_data:
+                # Delete existing quiz if it exists
+                SubtopicQuiz.query.filter_by(subtopic_id=subtopic_id).delete()
+                
+                for q_data in questions_data['questions']:
+                    quiz = SubtopicQuiz(
+                        subtopic_id=subtopic_id,
+                        question=q_data['question'],
+                        option_a=q_data['options'][0][3:],
+                        option_b=q_data['options'][1][3:],
+                        option_c=q_data['options'][2][3:],
+                        option_d=q_data['options'][3][3:],
+                        correct_answer=q_data['correct']
+                    )
+                    db.session.add(quiz)
+                
+                db.session.commit()
+                
+                # Clear the session key to force fresh load
+                if session_key in session:
+                    session.pop(session_key)
+                    
+                flash('Quiz generated successfully!', 'success')
+                return redirect(url_for('take_subtopic_quiz', subtopic_id=subtopic_id))
+            
+            flash('Unable to generate quiz questions. Please try again.', 'warning')
+            return redirect(url_for('list_course', course_id=topic.course.course_info.id))
+            
+        except Exception as e:
+            print(f"Generation error: {str(e)}")
+            db.session.rollback()
+            flash('Error generating quiz questions. Please try again.', 'danger')
+            return redirect(url_for('list_course', course_id=topic.course.course_info.id))
+            
     except Exception as e:
         print(f"Error in generate_subtopic_quiz: {str(e)}")
-        flash('An error occurred while generating the quiz.', 'danger')
+        flash('An error occurred. Please try again.', 'danger')
         return redirect(url_for('student_dashboard'))
 
 @app.route('/take_subtopic_quiz/<int:subtopic_id>')
@@ -363,11 +475,32 @@ def take_subtopic_quiz(subtopic_id):
     try:
         subtopic = Subtopic.query.get_or_404(subtopic_id)
         topic = Topic.query.get(subtopic.topic_id)
-        questions = SubtopicQuiz.query.filter_by(subtopic_id=subtopic_id).all()
+        
+        # Try to get existing quiz from session
+        session_key = f'quiz_subtopic_{subtopic_id}'
+        questions = session.get(session_key)
         
         if not questions:
-            flash('No quiz questions available for this subtopic.', 'warning')
-            return redirect(url_for('list_course', course_id=topic.course_id))
+            # If no quiz in session, get from database
+            questions = SubtopicQuiz.query.filter_by(subtopic_id=subtopic_id).all()
+            
+            if not questions:
+                flash('No quiz questions available for this subtopic.', 'warning')
+                return redirect(url_for('list_course', course_id=topic.course.course_info.id))
+            
+            # Store questions in session
+            session[session_key] = [
+                {
+                    'id': q.id,
+                    'question': q.question,
+                    'option_a': q.option_a,
+                    'option_b': q.option_b,
+                    'option_c': q.option_c,
+                    'option_d': q.option_d,
+                    'correct_answer': q.correct_answer
+                }
+                for q in questions
+            ]
             
         return render_template('quiz.html', topic=topic, subtopic=subtopic, questions=questions, is_subtopic_quiz=True)
         
@@ -395,6 +528,62 @@ def check_answer():
         'correct': is_correct,
         'correct_answer': question.correct_answer
     })
+    
+@app.route('/retake_quiz/<int:topic_id>', methods=['POST'])
+@login_required
+def retake_quiz(topic_id):
+    try:
+        is_subtopic = request.args.get('is_subtopic', 'false') == 'true'
+        subtopic_id = request.args.get('subtopic_id', None)
+        
+        # Clear any stored answers/state
+        if is_subtopic:
+            session_key = f'quiz_subtopic_{subtopic_id}'
+            session.pop(session_key, None)
+            return redirect(url_for('take_subtopic_quiz', subtopic_id=subtopic_id))
+        else:
+            session_key = f'quiz_topic_{topic_id}'
+            session.pop(session_key, None)
+            return redirect(url_for('take_topic_quiz', topic_id=topic_id))
+            
+    except Exception as e:
+        print(f"Error in retake_quiz: {str(e)}")
+        flash('An error occurred while retaking the quiz.', 'danger')
+        return redirect(url_for('student_dashboard'))
+
+@app.route('/recreate_quiz/<int:topic_id>', methods=['GET', 'POST'])
+@login_required
+def recreate_quiz(topic_id):
+    try:
+        is_subtopic = request.args.get('is_subtopic') == 'true'
+        subtopic_id = request.args.get('subtopic_id')
+        
+        if is_subtopic:
+            # Delete existing subtopic quiz
+            SubtopicQuiz.query.filter_by(subtopic_id=subtopic_id).delete()
+            session_key = f'quiz_subtopic_{subtopic_id}'
+            if session_key in session:
+                session.pop(session_key)
+            db.session.commit()
+            
+            # Generate new subtopic quiz
+            return redirect(url_for('generate_subtopic_quiz', subtopic_id=subtopic_id))
+        else:
+            # Delete existing topic quiz
+            Quiz.query.filter_by(topic_id=topic_id).delete()
+            session_key = f'quiz_topic_{topic_id}'
+            if session_key in session:
+                session.pop(session_key)
+            db.session.commit()
+            
+            # Generate new topic quiz
+            return redirect(url_for('generate_topic_quiz', topic_id=topic_id))
+            
+    except Exception as e:
+        print(f"Error in recreate_quiz: {str(e)}")
+        db.session.rollback()
+        flash('An error occurred while recreating the quiz.', 'danger')
+        return redirect(url_for('student_dashboard'))
     
   
 @app.route('/create_note/<int:course_id>', methods=['GET', 'POST'])

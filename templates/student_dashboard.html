@@ -88,4 +88,88 @@
     </div>
 </section>
 
+<script>
+    // Chat kutusunu en alta kaydırma fonksiyonu
+    function scrollChatToBottom() {
+        const chatBox = document.getElementById('chat-box');
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Sayfa yüklendiğinde ve yeni mesaj eklendiğinde chat'i en alta kaydır
+    document.addEventListener('DOMContentLoaded', function() {
+        scrollChatToBottom();
+    });
+
+    // Form gönderilmeden önce scroll pozisyonunu kaydet
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function() {
+            sessionStorage.setItem('shouldScrollToBottom', 'true');
+        });
+    });
+
+    // Sayfa yüklendiğinde scroll pozisyonunu kontrol et
+    window.addEventListener('load', function() {
+        if (sessionStorage.getItem('shouldScrollToBottom') === 'true') {
+            scrollChatToBottom();
+            sessionStorage.removeItem('shouldScrollToBottom');
+        }
+    });
+
+    // MutationObserver ile yeni mesajları izle
+    const chatBox = document.getElementById('chat-box');
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length) {
+                scrollChatToBottom();
+            }
+        });
+    });
+
+    // Observer'ı başlat
+    observer.observe(chatBox, {
+        childList: true,
+        subtree: true
+    });
+
+    // Chat kutusuna yeni mesaj eklendiğinde otomatik kaydırma
+    const chatForm = document.getElementById('chat-form');
+    if (chatForm) {
+        chatForm.addEventListener('submit', function(e) {
+            setTimeout(scrollChatToBottom, 100); // Mesajın eklenmesi için kısa bir gecikme
+        });
+    }
+
+    // Function to save both page and chat box scroll positions
+    function saveScrollPositions() {
+        const chatBox = document.getElementById('chat-box');
+        sessionStorage.setItem('pageScrollPosition', window.scrollY);
+        sessionStorage.setItem('chatBoxScrollPosition', chatBox.scrollTop);
+    }
+
+    // Function to restore both scroll positions
+    function restoreScrollPositions() {
+        const pageScrollPosition = sessionStorage.getItem('pageScrollPosition');
+        const chatBoxScrollPosition = sessionStorage.getItem('chatBoxScrollPosition');
+        const chatBox = document.getElementById('chat-box');
+
+        if (pageScrollPosition) {
+            window.scrollTo(0, parseInt(pageScrollPosition));
+            sessionStorage.removeItem('pageScrollPosition');
+        }
+
+        if (chatBoxScrollPosition) {
+            chatBox.scrollTop = parseInt(chatBoxScrollPosition);
+            sessionStorage.removeItem('chatBoxScrollPosition');
+        }
+    }
+
+    // Save positions before form submission
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', saveScrollPositions);
+    });
+
+    // Restore positions after page load
+    window.addEventListener('load', restoreScrollPositions);
+</script>
+
 {% endblock %}

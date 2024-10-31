@@ -56,7 +56,7 @@
                 </button>
                 
                 {% if is_subtopic_quiz %}
-                <form action="{{ url_for('recreate_quiz', topic_id=topic.id) }}?is_subtopic=true&subtopic_id={{ subtopic.id }}" method="POST" style="display: inline;">
+                <form action="{{ url_for('recreate_quiz', topic_id=subtopic.id) }}?is_subtopic=true&subtopic_id={{ subtopic.id }}" method="POST" style="display: inline;">
                 {% else %}
                 <form action="{{ url_for('recreate_quiz', topic_id=topic.id) }}?is_subtopic=false" method="POST" style="display: inline;">
                 {% endif %}

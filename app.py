@@ -25,25 +25,6 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 app.permanent_session_lifetime = timedelta(days=1)
 
-def process_and_randomize_quiz(questions_data):
-    """Helper function to process quiz data and randomize answers"""
-    if not questions_data or 'questions' not in questions_data:
-        return None
-        
-    for question in questions_data['questions']:
-        # Get the correct answer's content
-        correct_option = question['options'][ord(question['correct']) - ord('A')]
-        
-        # Randomly shuffle the options
-        random.shuffle(question['options'])
-        
-        # Find the new position of the correct answer
-        for i, option in enumerate(question['options']):
-            if option == correct_option:
-                question['correct'] = chr(ord('A') + i)
-                break
-    
-    return questions_data
 
 @app.route('/')
 def index():
@@ -262,11 +243,11 @@ def chatbot():
     
     return render_template('chat_ai.html')
 
-@app.route('/generate_topic_quiz/<int:topic_id>', methods=['POST'])
+@app.route('/generate_topic_quiz/<int:topic_id>', methods=['POST', 'GET'])
 @login_required
 def generate_topic_quiz(topic_id):
     try:
-        # Check if quiz already exists
+        # Check if quiz alread  y exists
         existing_quiz = Quiz.query.filter_by(topic_id=topic_id).first()
         session_key = f'quiz_topic_{topic_id}'
         
@@ -385,11 +366,15 @@ def take_topic_quiz(topic_id):
         flash('An error occurred while loading the quiz.', 'danger')
         return redirect(url_for('student_dashboard'))
 
-@app.route('/generate_subtopic_quiz/<int:subtopic_id>', methods=['POST'])
+@app.route('/generate_subtopic_quiz/<int:subtopic_id>', methods=['POST', 'GET'])
 @login_required
 def generate_subtopic_quiz(subtopic_id):
     try:
         existing_quiz = SubtopicQuiz.query.filter_by(subtopic_id=subtopic_id).first()
+        
+        if existing_quiz or session.get(session_key):
+            return redirect(url_for('take_subtopic_quiz', subtopic_id=subtopic_id))
+        
         session_key = f'quiz_subtopic_{subtopic_id}'
         
         subtopic = Subtopic.query.get_or_404(subtopic_id)
@@ -509,6 +494,25 @@ def take_subtopic_quiz(subtopic_id):
         flash('An error occurred while loading the quiz.', 'danger')
         return redirect(url_for('student_dashboard'))
 
+def process_and_randomize_quiz(questions_data):
+    """Helper function to process quiz data and randomize answers"""
+    if not questions_data or 'questions' not in questions_data:
+        return None
+        
+    for question in questions_data['questions']:
+        # Get the correct answer's content
+        correct_option = question['options'][ord(question['correct']) - ord('A')]
+        
+        # Randomly shuffle the options
+        random.shuffle(question['options'])
+        
+        # Find the new position of the correct answer
+        for i, option in enumerate(question['options']):
+            if option == correct_option:
+                question['correct'] = chr(ord('A') + i)
+                break
+    
+    return questions_data
 
 @app.route('/check_answer', methods=['POST'])
 @login_required

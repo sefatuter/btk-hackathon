@@ -37,7 +37,15 @@
                     <label for="q{{ question.id }}_D">D) {{ question.option_d }}</label>
                 </div>
             </div>
-            <div class="feedback" style="display: none; margin-top: 10px; padding: 10px; border-radius: 4px;"></div>
+            <div style="display: flex; align-items: start; gap: 10px; margin-top: 10px;">
+                <div class="feedback" style="display: none; flex: 1; padding: 10px; border-radius: 4px;"></div>
+                <button class="explanation-btn" style="display: none; padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap;">
+                    Show Explanation
+                </button>
+            </div>
+            <div class="explanation-text" style="display: none; margin-top: 10px; padding: 10px; background-color: #e9ecef; border-radius: 4px;">
+                description
+            </div>
             <input type="hidden" class="correct-answer" value="{{ question.correct_answer }}">
         </div>
         {% endfor %}
@@ -126,6 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const selectedAnswer = question.querySelector('input[type="radio"]:checked').value;
             const correctAnswer = question.querySelector('.correct-answer').value;
             const feedbackDiv = question.querySelector('.feedback');
+            const explanationBtn = question.querySelector('.explanation-btn');
 
             if (selectedAnswer === correctAnswer) {
                 correctCount++;
@@ -138,6 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 feedbackDiv.style.color = '#721c24';
             }
             feedbackDiv.style.display = 'block';
+            explanationBtn.style.display = 'block';
         });
 
         // Show results
@@ -158,6 +168,20 @@ document.addEventListener('DOMContentLoaded', function() {
         quizSubmitted = true;
     });
 
+    // Handle explanation buttons
+    document.querySelectorAll('.explanation-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const explanationText = this.parentElement.nextElementSibling;
+            if (explanationText.style.display === 'none') {
+                explanationText.style.display = 'block';
+                this.textContent = 'Close Explanation';
+            } else {
+                explanationText.style.display = 'none';
+                this.textContent = 'Show Explanation';
+            }
+        });
+    });
+
     // Handle retake quiz
     if (retakeButton) {
         retakeButton.addEventListener('click', function() {
@@ -167,8 +191,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 input.disabled = false;
             });
             
-            // Hide all feedback
+            // Hide all feedback, explanation buttons, and explanation texts
             document.querySelectorAll('.feedback').forEach(div => {
+                div.style.display = 'none';
+            });
+            document.querySelectorAll('.explanation-btn').forEach(btn => {
+                btn.style.display = 'none';
+                btn.textContent = 'Açıklamayı Göster';
+            });
+            document.querySelectorAll('.explanation-text').forEach(div => {
                 div.style.display = 'none';
             });
             

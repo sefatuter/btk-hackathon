@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 import requests
 import os
 import google.generativeai as genai
-from gemini import generation_config, model1, model2, model3, model4, model5
+from gemini import generation_config, model1, model2, model3, model4, model5, model6
 from markdown2 import Markdown
 from markupsafe import Markup
 import random
@@ -370,12 +370,11 @@ def take_topic_quiz(topic_id):
 @login_required
 def generate_subtopic_quiz(subtopic_id):
     try:
+        session_key = f'quiz_subtopic_{subtopic_id}'
         existing_quiz = SubtopicQuiz.query.filter_by(subtopic_id=subtopic_id).first()
         
         if existing_quiz or session.get(session_key):
             return redirect(url_for('take_subtopic_quiz', subtopic_id=subtopic_id))
-        
-        session_key = f'quiz_subtopic_{subtopic_id}'
         
         subtopic = Subtopic.query.get_or_404(subtopic_id)
         topic = Topic.query.get(subtopic.topic_id)
@@ -451,7 +450,6 @@ def generate_subtopic_quiz(subtopic_id):
             
     except Exception as e:
         print(f"Error in generate_subtopic_quiz: {str(e)}")
-        flash('An error occurred. Please try again.', 'danger')
         return redirect(url_for('student_dashboard'))
 
 @app.route('/take_subtopic_quiz/<int:subtopic_id>')
@@ -692,6 +690,55 @@ def create_note(course_id):
         db.session.rollback()
         flash(f'An error occurred: {str(e)}', 'error')
         return redirect(url_for('student_dashboard'))
+
+
+# to be continued..
+def generate_explanation_prompt(question, options):
+    """Generate a comprehensive prompt for the AI explanation"""
+    return f"""Explain this multiple choice question in detail:
+
+Question: {question}
+
+Options:
+A) {options['A']}
+B) {options['B']}
+C) {options['C']}
+D) {options['D']}
+
+Please provide:
+1. A detailed explanation of the correct answer
+2. Why other options are incorrect
+3. Key concepts and points to remember"""
+
+@app.route('/api/get_explanation/<int:question_id>', methods=['GET'])
+def get_explanation(question_id):
+    try:
+        # Fetch question from database
+        question = Quiz.query.get_or_404(question_id)
+        
+        # Create options dictionary
+        options = {
+            'A': question.option_a,
+            'B': question.option_b,
+            'C': question.option_c,
+            'D': question.option_d
+        }
+        
+        # Generate prompt for AI
+        prompt = generate_explanation_prompt(question.question, options)
+        
+        # Get explanation from AI using existing generate_text function
+        explanation = generate_text(prompt, model6)
+        
+        return jsonify({
+            'success': True,
+            'explanation': explanation
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 # AI section
 

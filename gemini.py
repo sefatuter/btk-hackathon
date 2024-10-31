@@ -114,6 +114,7 @@ model4 = genai.GenerativeModel(
   '''  
 )
 
+# Lecture Note Model
 model5 = genai.GenerativeModel(
   model_name="gemini-1.5-pro",
   generation_config=generation_config,
@@ -130,5 +131,14 @@ model5 = genai.GenerativeModel(
   Create detailed and comprehensive lecture notes following the instructions above. Prepare a separate lecture note for each topic/subtopic. Emphasize the most important components and concepts of the subject in the lecture notes, 
   explain formulas, examples, exam focus. 
   Make lecture notes useful for students to prepare for exams.
+  '''
+)
+
+# 
+model6 = genai.GenerativeModel(
+  model_name="gemini-1.5-pro",
+  generation_config=generation_config,
+  system_instruction='''
+  explain question detailed ..
   '''
 )

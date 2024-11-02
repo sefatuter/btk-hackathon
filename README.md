@@ -178,5 +178,7 @@ S.T -------------------------------------------------------
   konuşma içerisinde oluşturuuldu! git tarzı
   
   tablo ekranına, progress kısmı, öğrenci ilerlemesini kayıt altına alma
+
+  login yaptıktan sonra "You are taking a step through the Edugate!" türü bir pop up çıkar
 ```
 

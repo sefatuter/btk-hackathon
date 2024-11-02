@@ -1,0 +1,71 @@
+/* Prevent transition on page load */
+.preload * {
+    transition: none !important;
+}
+
+/* Variables */
+:root {
+    /* Core Brand Colors */
+    --primary-color: #2a5298;
+    --secondary-color: #1e3c72;
+    
+    /* Gradient Colors */
+    --gradient-start: #224672;
+    --gradient-middle: #1f3442;
+    --gradient-end: #081220;
+    
+    /* Base Colors */
+    --background-color: #f8f9fa;
+    --text-color: #2a3441;
+    --text-light: #ffffff;
+    --card-bg: #ffffff;
+    --border-color: rgba(0, 0, 0, 0.1);
+    --text-muted: #6c757d;
+    
+    /* Chat Colors - Light */
+    --chat-bg-light: #f8f9fa;
+    --chat-container-light: #ffffff;
+    --chat-user-msg-light: #e3f2fd;
+    --chat-ai-msg-light: #f3f4f6;
+    --input-bg-light: #ffffff;
+    
+    /* Chat Colors - Dark */
+    --chat-bg-dark: #1f2937;
+    --chat-container-dark: #2a3441;
+    --chat-user-msg-dark: #1e3c72;
+    --chat-ai-msg-dark: #374151;
+    --input-bg-dark: #1f2937;
+
+    /* Light Theme Specifics */
+    --bg-light: #f8f9fa;
+    --text-light-primary: #2a3441;
+    --border-light: rgba(0, 0, 0, 0.1);
+    
+    /* Dark Theme Specifics */
+    --bg-dark: #1a1a1a;
+    --text-dark-primary: #ffffff;
+    --border-dark: #404040;
+    --table-bg: #2d2d2d;
+    --table-hover-dark: #2d3748;
+    
+    /* Layout */
+    --sidebar-width: 280px;
+    --border-radius: 8px;
+    --spacing-unit: 1rem;
+    --container-max-width: 1200px;
+    
+    /* Effects */
+    --transition-timing: 0.3s ease;
+    --box-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --box-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.05);
+    --box-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+    /* Radio Button Colors */
+    --radio-border-light-dark: rgba(255, 255, 255, 0.3);
+    --radio-checked-border-dark: #6d94d9;
+    --radio-hover-border-dark: #4d7cc7;
+    --radio-gradient-start: #2a5298;
+    --radio-gradient-end: #4d7cc7;
+    --radio-focus-shadow-light: rgba(42, 82, 152, 0.25);
+    --radio-focus-shadow-dark: rgba(42, 82, 152, 0.4);
+}

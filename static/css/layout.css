@@ -1,0 +1,234 @@
+/* layout.css */
+
+/* Global Layout */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+}
+
+/* Container Layout */
+.container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+.container h1 {
+    color: var(--text-color);
+    margin-bottom: 1.5rem;
+}
+
+.main-content {
+    flex: 1;
+}
+
+/* Sidebar Layout */
+.sidebar-toggle {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1030;
+    background: linear-gradient(45deg, var(--gradient-start), var(--gradient-middle));
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform var(--transition-timing),
+                box-shadow var(--transition-timing);
+    box-shadow: var(--box-shadow-sm);
+
+    &:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--box-shadow-md);
+    }
+}
+
+.offcanvas {
+    width: var(--sidebar-width) !important;
+    background: linear-gradient(135deg, 
+        var(--gradient-start) 0%, 
+        var(--gradient-middle) 50%, 
+        var(--gradient-end) 100%
+    );
+    background-size: 200% 200%;
+    animation: gradientMove 15s ease infinite;
+    color: var(--text-light);
+}
+
+.offcanvas-header {
+    padding: 1.5rem 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+}
+
+.offcanvas-title {
+    color: var(--text-light);
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.offcanvas-body {
+    padding: 1.5rem 1rem;
+}
+
+.sidebar-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 1rem;
+}
+
+/* User Info Layout */
+.user-info {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: var(--border-radius);
+    backdrop-filter: blur(5px);
+    box-shadow: var(--box-shadow-sm);
+}
+
+/* Dashboard Layout */
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Course Layout */
+.courses-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Table Layout */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow-sm);
+}
+
+/* Navigation Layout */
+.breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    list-style: none;
+    gap: 0.5rem;
+}
+
+.nav-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+
+/* Chat Layout */
+.chatbot-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Quick Links Layout */
+.quick-links {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+/* Grid Layout Utilities */
+.grid-container {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+/* Flex Layout Utilities */
+.flex-container {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Footer */
+.footer-custom {
+    background: linear-gradient(45deg, var(--gradient-start), var(--gradient-middle));
+    color: var(--text-light);
+    padding: 1rem 0;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+}
+
+/* Spacing Utilities */
+.section-spacing {
+    margin-bottom: 3rem;
+}
+
+.content-spacing {
+    margin-bottom: 1.5rem;
+}
+
+/* Animations */
+@keyframes gradientMove {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+/* Responsive Layout */
+@media (max-width: 768px) {
+    :root {
+        --sidebar-width: 250px;
+    }
+
+    .main-content {
+        padding-top: 3rem;
+    }
+    
+    .offcanvas-title {
+        font-size: 1.5rem;
+    }
+    
+    .sidebar-content {
+        gap: 0.75rem;
+    }
+
+    .grid-container {
+        grid-template-columns: 1fr;
+    }
+
+    .flex-container {
+        flex-direction: column;
+    }
+}
+
+/* Print Layout */
+@media print {
+    .sidebar-toggle,
+    .footer-custom {
+        display: none;
+    }
+
+    .main-content {
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        padding-bottom: 0;
+    }
+}

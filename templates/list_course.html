@@ -1,50 +1,58 @@
 {% extends "base.html" %}
+{% block title %}{{ course.course_name }}{% endblock %}
+
 {% block content %}
+<div class="course-container">
+    <!-- Navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('student_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active">{{ course.course_code }}</li>
+        </ol>
+    </nav>
 
-<div class="container">
-    <a href="{{ url_for('student_dashboard') }}" class="btn btn-sm btn-warning">> Go back</a>
-</div>
-
-<div class="container py-5">
-    <div class="course-header">
-        <h2 class="mb-4">{{course.course_code}} - {{course.course_name}}</h2>
+    <!-- Course Header -->
+    <div class="course-header mb-4">
+        <h2>{{ course.course_code }} - {{ course.course_name }}</h2>
     </div>
 
+    <!-- Topics Accordion -->
     <div class="accordion" id="mainAccordion">
         {% for topic in course.topics %}
-        <div class="accordion-item">
-            <h2 class="accordion-header">
-                <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}">
+        <div class="accordion-item mb-3">
+            <h3 class="accordion-header">
+                <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button" 
+                        data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}">
                     {{ topic.topic_name }}
                 </button>
-            </h2>
-            <div style="text-align: right; padding: 10px;">
-                <form action="{{ url_for('generate_topic_quiz', topic_id=topic.id) }}" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-primary btn-sm">Take Topic Quiz</button>
-                </form>
-            </div>
-
-            <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" data-bs-parent="#mainAccordion">
+            </h3>
+            <div id="collapse{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}" 
+                 data-bs-parent="#mainAccordion">
                 <div class="accordion-body">
+                    <!-- Topic Quiz Button -->
+                    <form action="{{ url_for('generate_topic_quiz', topic_id=topic.id) }}" method="POST" class="no-margin"> 
+                        <button type="submit" class="btn btn-primary btn-sm quiz-button"> Take Topic Quiz </button>  
+                    </form> 
+
                     {% set outer_loop = loop %}
-                    
+                    <!-- Subtopics -->
                     <div class="accordion" id="nestedAccordion{{ loop.index }}">
                         {% for subtopic in topic.subtopics %}
                         <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#nested{{ outer_loop.index }}{{ loop.index }}">
+                            <h4 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#nested{{ outer_loop.index }}{{ loop.index }}">
                                     {{ subtopic.subtopic_name }}
                                 </button>
-                            </h2>
-                            <div style="text-align: right; padding: 10px;">
-                                <form action="{{ url_for('generate_subtopic_quiz', subtopic_id=subtopic.id) }}" method="POST" style="display: inline;">
-                                    <button type="submit" class="btn btn-success btn-sm">Take Subtopic Quiz</button>
-                                </form>
-                            </div>
-
-                            <div id="nested{{ outer_loop.index }}{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#nestedAccordion{{ outer_loop.index }}">
+                            </h4>
+                            <div id="nested{{ outer_loop.index }}{{ loop.index }}" 
+                                 class="accordion-collapse collapse" 
+                                 data-bs-parent="#nestedAccordion{{ outer_loop.index }}">
                                 <div class="accordion-body">
-                                    <!-- Content for each subtopic can go here -->
+                                    <form action="{{ url_for('generate_subtopic_quiz', subtopic_id=subtopic.id) }}" method="POST" class="no-margin"> 
+                                        <button type="submit" class="btn btn-primary btn-sm quiz-button"> Take Subtopic Quiz </button>  
+                                    </form> 
                                 </div>
                             </div>
                         </div>
@@ -56,39 +64,5 @@
         {% endfor %}
     </div>
 </div>
-
-<style>
-    .accordion-button:not(.collapsed) {
-        background-color: #e7f1ff;
-        color: #0c63e4;
-    }
-    
-    .accordion-button:focus {
-        border-color: #86b7fe;
-        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-    }
-    
-    .accordion-button::after {
-        flex-shrink: 0;
-        width: 1.25rem;
-        height: 1.25rem;
-        margin-left: auto;
-        content: "";
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%230c63e4'%3e%3cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3e%3c/svg%3e");
-        background-repeat: no-repeat;
-        background-size: 1.25rem;
-        transition: transform .2s ease-in-out;
-    }
-    
-    .accordion-button:not(.collapsed)::after {
-        transform: rotate(-180deg);
-    }
-    
-    .btn-sm {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.875rem;
-        border-radius: 0.2rem;
-    }
-</style>
 
 {% endblock %}

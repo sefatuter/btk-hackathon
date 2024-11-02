@@ -72,7 +72,7 @@ def login():
 
     return render_template('login.html', form=form)
 
-@app.route('/logout', methods=['POST'])
+@app.route('/logout', methods=['POST', 'GET'])
 def logout():
     logout_user()
     flash('You have been logged out.', 'success')
@@ -149,11 +149,15 @@ def list_course(course_id):
         
         # Verify course was saved/retrieved successfully
         if course:
+            if request.method == 'POST':
+                return redirect(url_for('list_course', course_id=course_id))
             return render_template('list_course.html', course=course)
         else:
-            return jsonify({"error": "Failed to save or retrieve course data"}), 500
+            flash('Failed to save or retrieve course data', 'error')
+            return redirect(url_for('student_dashboard'))
     else:
-        return jsonify({"error": "No AI messages found for this course"}), 404
+        flash('No AI messages found for this course', 'error')
+        return redirect(url_for('student_dashboard'))
 
 def table(raw_data, course_id):
     # Check if the course already exists based on `course_id`
@@ -770,6 +774,7 @@ D) {options['D']}'''
             'status': 'error'
         }), 500
 
+        
 # AI section
 
 def generate_text(prompt, model):

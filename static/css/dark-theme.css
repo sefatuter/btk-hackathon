@@ -1,0 +1,439 @@
+/* dark-theme.css */
+
+[data-theme="dark"] {
+    /* Base Colors - Dark Theme */
+    --background-color: #1a1a1a;
+    --text-color: #ffffff;
+    --card-bg: #2d2d2d;
+    --border-color: #404040;
+    --text-muted: #a0a0a0;
+    --table-bg: #2d2d2d;
+    --table-hover-dark: #2d3748;
+    
+    /* Chat Colors - Dark Theme */
+    --chat-bg: #1f2937;
+    --chat-container: #2a3441;
+    --chat-user-msg: #1e3c72;
+    --chat-ai-msg: #374151;
+    --input-bg: #1f2937;
+
+    /* Element Colors */
+    background-color: var(--background-color);
+    color: var(--text-color);
+
+    /* Container Styles */
+    .container, 
+    .container h1, 
+    body {
+        color: var(--text-color);
+    }
+
+    /* Component Dark Theme */
+    .course-container,
+    .dashboard-container,
+    .question-card,
+    .card {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+        color: var(--text-color);
+    }
+
+    .question-card .form-check:hover {
+        background-color: var(--chat-user-msg-dark);
+    }
+
+    .question-card .form-check-label:hover {
+        background-color: var(--chat-user-msg-dark);
+    }
+
+    .question-card .form-check-input:checked + .form-check-label {
+        background-color: var(--chat-user-msg-dark);
+    }
+
+    /* Course Header Dark Theme */
+    .course-header {
+        background: linear-gradient(
+            135deg,
+            var(--gradient-middle) 0%,
+            var(--gradient-start) 100%
+        );
+    }
+
+    /* Chat Elements Dark Theme */
+    .chat-box {
+        background: var(--chat-bg);
+        border-color: var(--border-color);
+    }
+
+    .message-content {
+        background-color: var(--chat-ai-msg);
+    }
+
+    .user-message, 
+    .ai-message {
+        background-color: transparent;
+    }
+
+    .user-message .message-content {
+        background-color: var(--chat-user-msg-dark);
+        color: var(--text-light);
+    }
+
+    .ai-message .message-content {
+        background-color: var(--chat-ai-msg-dark);
+        color: var(--text-light);
+    }
+
+    .chat-container {
+        background: var(--chat-container);
+        border-color: var(--border-color);
+    }
+
+    /* Form Elements Dark Theme */
+    .prompt-form,
+    .prompt-form .input-group {
+        background: var(--input-bg);
+    }
+
+    .prompt-form .form-control {
+        background: var(--input-bg);
+        border-color: var(--border-color);
+        color: #e5e7eb;
+
+        &::placeholder {
+            color: #9ca3af;
+        }
+
+        &:focus {
+            background: var(--input-bg);
+            border-color: var(--primary-color);
+        }
+    }
+
+    .form-check-input[type="radio"] {
+        background-color: var(--chat-bg-dark);
+        border-color: var(--radio-border-light-dark);
+    }
+    
+    .form-check-input[type="radio"]:checked {
+        background: transparent;
+        border-color: var(--radio-checked-border-dark);
+    }
+
+    .form-check-input[type="radio"]:checked::after {
+        background: linear-gradient(135deg, var(--radio-gradient-start), var(--radio-gradient-end));
+    }
+
+    .form-check-input[type="radio"]:hover {
+        border-color: var(--radio-hover-border-dark);
+    }
+
+    .form-check-input[type="radio"]:focus {
+        box-shadow: 0 0 0 0.2rem var(--radio-focus-shadow-dark); /* Darker shadow for dark mode */
+    }
+
+    .prompt-form .input-group .btn-primary {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+        &:hover {
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
+        }
+    }
+
+    /* Form Controls Dark Theme */
+    .form-control,
+    input,
+    select,
+    textarea {
+        background-color: var(--card-bg) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-color) !important;
+    }
+
+    /* Button States Dark Theme */
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+
+    .btn-secondary {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+        color: white;
+    }
+
+    .btn-outline-primary {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+
+        &:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+    }
+
+    .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%);
+    }
+
+    .btn-light {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: transparent;
+        color: var(--text-light);
+
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: var(--text-light);
+        }
+    }
+
+    /* Table Styles Dark Theme */
+    .table {
+        background: var(--chat-container);
+        border-color: var(--border-color);
+
+        td {
+            background: var(--chat-container);
+            color: var(--text-color);
+            border-color: var(--border-color);
+        }
+
+        th {
+            border-color: var(--border-color);
+        }
+
+        thead {
+            background: linear-gradient(
+                45deg,
+                var(--gradient-middle) 0%,
+                var(--gradient-start) 100%
+            );
+
+            th {
+                color: var(--text-light);
+                border-bottom: 1px solid var(--border-color);
+                background: transparent;
+            }
+        }
+
+        tbody {
+            tr:hover td {
+                background-color: var(--table-hover-dark);
+            }
+
+            tr::after {
+                background: linear-gradient(
+                    45deg,
+                    rgba(255, 255, 255, 0.03),
+                    rgba(255, 255, 255, 0.05)
+                );
+            }
+        }
+
+        &.loading tbody tr td::after {
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.05),
+                transparent
+            );
+        }
+    }
+
+    .table-responsive {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+        &::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+    }
+
+    /* Accordion Dark Theme */
+    .accordion-item {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+    }
+
+    .accordion-button {
+        background-color: var(--card-bg);
+        color: var(--text-color);
+        border: none;
+
+        &:not(.collapsed) {
+            background: linear-gradient(
+                45deg,
+                var(--gradient-middle) 0%,
+                var(--gradient-start) 100%
+            );
+            color: var(--text-light);
+            box-shadow: none;
+        }
+
+        &:focus {
+            border-color: var(--border-color);
+            box-shadow: none;
+        }
+
+        &::after {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+    }
+
+    .accordion-collapse {
+        border: none;
+    }
+
+    .accordion-body {
+        background-color: var(--chat-container);
+        color: var(--text-light);
+    }
+
+    /* Nested Accordion Specific Styles */
+    #mainAccordion .accordion-item {
+        border: 1px solid var(--border-color);
+    }
+
+    /* Style for nested accordions */
+    [id^="nestedAccordion"] .accordion-item {
+        border: 1px solid var(--border-color);
+    }
+
+    /* Remove any remaining white borders from Bootstrap */
+    .accordion-button::after {
+        border: none;
+    }
+
+    .accordion-header {
+        border: none;
+    }
+
+    /* Navigation Dark Theme */
+    .breadcrumb-item,
+    .breadcrumb-item a {
+        color: var(--text-color);
+    }
+
+    .breadcrumb-item.active {
+        color: var(--text-muted);
+    }
+
+    /* Dropdown Dark Theme */
+    .dropdown-menu {
+        background-color: var(--card-bg);
+        border-color: var(--border-color);
+    }
+
+    .dropdown-item {
+        color: var(--text-color);
+
+        &:hover {
+            background-color: var(--border-color);
+        }
+    }
+
+    /* Status Messages Dark Theme */
+    .success-message {
+        background-color: rgba(16, 185, 129, 0.2);
+    }
+
+    .error-message {
+        background-color: rgba(239, 68, 68, 0.2);
+    }
+
+    /* Scrollbar Dark Theme */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-radius: 4px;
+    }
+
+    /* Link Styles Dark Theme */
+    a:not(.btn) {
+        color: var(--text-color);
+    }
+
+    /* Code Blocks Dark Theme */
+    pre, code {
+        background-color: rgba(0, 0, 0, 0.2);
+        border-color: var(--border-color);
+    }
+
+    /* Selection Dark Theme */
+    ::selection {
+        background-color: var(--primary-color);
+        color: var(--text-light);
+    }
+
+    /* Box Shadows Dark Theme */
+    .card,
+    .chat-container,
+    .dropdown-menu {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Focus States Dark Theme */
+    .btn:focus,
+    .form-control:focus {
+        box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+    }
+
+    /* Placeholder Text Dark Theme */
+    input::placeholder,
+    textarea::placeholder {
+        color: var(--text-muted);
+    }
+
+    /* Sidebar Specific Dark Mode */
+    .sidebar-content {
+        .btn {
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+                background-color: rgba(255, 255, 255, 0.15);
+            }
+        }
+
+        .btn-light {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: var(--gradient-start);
+        }
+
+        .btn-secondary {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .btn-outline-light {
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+    }
+
+    /* User Info Dark Theme */
+    .user-info {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: var(--border-radius);
+        backdrop-filter: blur(5px);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Typing Indicator Dark Theme */
+    .typing-indicator {
+        color: var(--text-muted);
+    }
+
+    .footer-custom {
+        background: linear-gradient(135deg, var(--gradient-middle) 0%, var(--gradient-start) 100%);
+    }
+
+}

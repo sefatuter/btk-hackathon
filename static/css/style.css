@@ -1,328 +1,212 @@
+/* style.css */
 
-body {
-    padding-bottom: 60px; /* Same as the footer height */
-    font-family: Arial, sans-serif;
+/* Import modular CSS files */
+@import 'variables.css';
+@import 'layout.css';
+@import 'components.css';
+@import 'dark-theme.css';
+
+/* Apply performance optimizations */
+.sidebar,
+.chat-container,
+.message-content {
+    will-change: transform, opacity;
 }
 
-.footer-custom {
-    display: none; /* Initially hidden */
-    text-align: center;
-    padding: 1rem;
-    color: rgb(0, 0, 0);
-    background-color: #f8f9fa;
-    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.3);
-    height: 60px;
-    width: 100%;
-    position: fixed;
-    bottom: 0;
-    z-index: 1;
-}
-
-
-
-.gradient-background {
-    background: linear-gradient(
-      45deg,
-      #fff3f0 0%,
-      #224672 20%,
-      #1f3442 40%,
-      #1b3b80a2 60%,
-      #1b253f 80%,
-      #081220 100%
-    );
-    background-size: 400% 400%;
-    background-position: 400%;
-    animation: gradient 10s ease infinite;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-/* Center the register container and give it some stylish padding */
-.register-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    /* only in register page */
-    /* background: linear-gradient(
-        45deg,
-        #fff3f0 0%,
-        #224672 20%,
-        #1f3442 40%,
-        #1b3b80a2 60%,
-        #1b253f 80%,
-        #081220 100%
-    );
-    background-size: 400% 400%;
-    background-position: 400%;
-    animation: gradient 20s ease infinite; */
-}
-
-/* Keyframes for the gradient animation */
-@keyframes gradient {
-    0% {
-        background-position: 0%;
+/* Message Animation */
+@keyframes slideIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
     }
-    50% {
-        background-position: 50%;
-    }
-    100% {
-        background-position: 0%;
+    to {
+        transform: translateY(0);
+        opacity: 1;
     }
 }
 
-
-/* Stylish heading for the form */
-.register-heading {
-    color: #ffffff;
-    font-size: 2.5rem;
-    font-weight: bold;
-    margin-bottom: 40px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    letter-spacing: 1.5px;
-}
-.register-container .montserrat {
-    font-family: "Montserrat", sans-serif;
-    font-optical-sizing: auto;
-    font-weight: bold;
-    font-style: normal;
-  }
-
-/* Target the specific registration form */
-.register-form {
-    background-color: #fff;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);  /* Smooth shadow for form */
-    width: 350px;
-    text-align: center;
-    transition: all 0.3s ease;
-}
-
-/* Slight hover effect to add interactivity */
-.register-form:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
-}
-
-/* Form labels */
-.register-form div {
-    margin-bottom: 15px;
-}
-
-.register-form label {
+/* Empty State Styles */
+.table tbody:empty::after {
+    content: 'No courses available';
     display: block;
-    font-size: 14px;
-    margin-bottom: 5px;
-    color: #2a5298;
-    font-weight: bold;
-}
-
-/* Input fields */
-.register-form input[type="text"],
-.register-form input[type="email"],
-.register-form input[type="password"],
-.register-form select {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
-    margin-bottom: 10px;
-    transition: border-color 0.3s;
-}
-
-/* Focus effect for inputs */
-.register-form input:focus {
-    border-color: #1e3c72;
-}
-
-/* Submit button */
-.register-form input[type="submit"] {
-    background-color: #007bff;
-    color: white;
-    padding: 12px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    width: 100%;
-    transition: background-color 0.3s, transform 0.2s;
-}
-
-/* Submit button hover effect */
-.register-form input[type="submit"]:hover {
-    background-color: #0056b3;
-    transform: scale(1.05);
-}
-
-/* Style for the h1 title */
-.register-container h1 {
     text-align: center;
-    font-family: 'Arial', sans-serif;
-    color: white;
-}
-
-
-
-
-
-
-/* Student Dashboard Styles */
-.student-dashboard-container {
-    max-width: 600px;
-    margin: 2rem auto; /* Centered container */
-    padding: 1.5rem;
-    background-color: #ffffff; /* White background for the dashboard */
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-}
-
-.student-dashboard-title {
-    text-align: center;
-    color: #224672; /* Dark blue color */
-}
-
-#student-question-form {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 1.5rem;
-}
-
-label {
-    margin-bottom: 0.5rem;
-    font-weight: bold;
-}
-
-#student-user-question {
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    margin-bottom: 1rem;
-}
-
-.student-submit-button {
-    padding: 10px;
-    border: none;
-    border-radius: 4px;
-    background-color: #1b3b80; /* Dark blue */
-    color: white;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.student-submit-button:hover {
-    background-color: #224672; /* Slightly lighter blue on hover */
-}
-
-.student-response-box {
-    padding: 1rem;
-    background-color: #e7f3fe; /* Light blue background for AI response */
-    border-left: 5px solid #1b3b80; /* Dark blue border on the left */
-    margin-top: 1rem;
-    border-radius: 4px;
-}
-
-#student-response-text {
-    font-style: italic; /* Italic style for the response */
-}
-
-#dashboard-title {
-
-    margin-left: 100px;
-
-}
-
-.typing-indicator {
+    padding: 2rem;
+    color: var(--text-muted);
     font-style: italic;
-    color: #1b3b80; /* Dark blue color */
-    margin: 1rem 0;
 }
 
-#generated-tables table {
+/* Loading States */
+.table.loading tbody tr td {
+    position: relative;
+    overflow: hidden;
+}
+
+.table.loading tbody tr td::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+    animation: shimmer 2s infinite;
 }
 
-#generated-tables th, #generated-tables td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
+/* Table Cleanup */
+.table > :not(caption) > * > * {
+    background-color: transparent;
 }
 
-#generated-tables th {
-    background-color: #f2f2f2;
+/* Utility Overrides */
+.table td:last-child {
+    white-space: nowrap;
+    text-align: right;
 }
 
-
-section.student-dashboard { 
-    font-family: Arial, sans-serif; 
-    margin: 20px; 
+/* Dropdown Component Styles */
+.dropdown-menu {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
 }
 
-.student-dashboard-chat-box { 
-    width: 100%; 
-    max-width: 600px; 
-    margin: 0 auto; 
-    max-height: 300px; /* Set a maximum height */
-    overflow-y: auto;  /* Enable vertical scrolling */
-    border: 1px solid #ccc; /* Optional: Add a border for better visibility */
-    padding: 10px; /* Optional: Add some padding */
-    border-radius: 5px; /* Optional: Add rounded corners */
+.dropdown-item {
+    color: var(--text-color);
 }
 
-.student-dashboard-message { 
-    padding: 10px; 
-    border-radius: 5px; 
-    margin-bottom: 10px; 
+.dropdown-item:hover {
+    background-color: var(--border-color);
 }
 
-.student-dashboard-user-message { 
-    background-color: #d1e7dd; 
-    text-align: right; 
+/* Icon Alignments */
+.btn i {
+    vertical-align: middle;
+    line-height: 1;
 }
 
-.student-dashboard-ai-message { 
-    background-color: #f8d7da; 
-    text-align: left; 
+/* Link States */
+a:not(.btn) {
+    color: var(--text-color);
+    text-decoration: none;
 }
 
-.student-dashboard-input-group { 
-    display: flex; 
-    gap: 10px; 
-    margin-top: 20px; 
+a:not(.btn):hover {
+    color: var(--primary-color);
 }
 
-.student-dashboard-input { 
-    flex: 1; 
-    padding: 10px; 
+/* Bootstrap Overrides */
+.btn-close {
+    opacity: 0.8;
 }
 
-.student-dashboard-button { 
-    padding: 10px 15px; 
+.btn-close:hover {
+    opacity: 1;
 }
 
-.student-dashboard-table { 
-    width: 100%; 
-    border-collapse: collapse; 
-    margin-top: 20px; 
+/* Accessibility */
+.btn:focus,
+.form-control:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--primary-color);
 }
 
-.student-dashboard-th, .student-dashboard-td { 
-    padding: 10px; 
-    text-align: left; 
-    border-bottom: 1px solid #ddd; 
+/* Additional Utility Classes */
+.text-muted {
+    color: var(--text-muted) !important;
 }
 
-.student-dashboard-th { 
-    background-color: #f2f2f2; 
+/* Backdrop Filter Support */
+@supports (backdrop-filter: blur(5px)) {
+    .sidebar-content .btn,
+    .user-info {
+        backdrop-filter: blur(5px);
+    }
 }
 
+/* Image Optimization */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Focus Visible Polyfill */
+.js-focus-visible :focus:not(.focus-visible) {
+    outline: none;
+}
+
+/* High Contrast Mode */
+@media (forced-colors: active) {
+    .btn,
+    .table,
+    .chat-container {
+        border: 1px solid currentColor;
+    }
+}
+
+/* Print Optimizations */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    a[href]:after {
+        content: " (" attr(href) ")";
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Animations */
+@keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+}
+
+/* Theme Transition */
+body {
+    transition: background-color var(--transition-timing),
+                color var(--transition-timing);
+}
+
+/* Form Input Enhancements */
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-muted);
+}
+
+/* Selection Styles */
+::selection {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+}
+
+/* Box Shadow Utilities */
+.shadow-sm {
+    box-shadow: var(--box-shadow-sm) !important;
+}
+
+.shadow-md {
+    box-shadow: var(--box-shadow-md) !important;
+}
+
+.shadow-lg {
+    box-shadow: var(--box-shadow-lg) !important;
+}
 
 .explanation-wrapper {
     max-width: 800px;

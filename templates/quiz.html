@@ -1,90 +1,114 @@
 {% extends "base.html" %}
+
+{% block title %}Quiz{% endblock %}
+
 {% block content %}
-<div style="background-color: #f8f9fa; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-    <div>
-        <a href="{{ url_for('student_dashboard') }}" style="text-decoration: none; color: #007bff; margin-right: 15px;">Dashboard</a>
-        <a href="{{ url_for('list_course', course_id=topic.course.course_info.id) }}" style="text-decoration: none; color: #007bff;">Back to Course</a>
-    </div>
-</div>
 
-<div style="padding: 20px;">
-    {% if is_subtopic_quiz %}
-        <h2>Subtopic Quiz: {{ subtopic.subtopic_name }}</h2>
-        <h3 style="color: #666;">Topic: {{ topic.topic_name }}</h3>
-    {% else %}
-        <h2>Topic Quiz: {{ topic.topic_name }}</h2>
-    {% endif %}
+<div class="quiz-container">
 
-    <div id="quiz-container">
-        {% for question in questions %}
-        <div class="question-card" style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <h4>Question {{ loop.index }}: {{ question.question }}</h4>
-            <div class="options" style="margin-left: 20px; margin-top: 10px;">
-                <div class="option" style="margin-bottom: 10px;">
-                    <input type="radio" id="q{{ question.id }}_A" name="q{{ question.id }}" value="A" class="quiz-option">
-                    <label for="q{{ question.id }}_A">A) {{ question.option_a }}</label>
-                </div>
-                <div class="option" style="margin-bottom: 10px;">
-                    <input type="radio" id="q{{ question.id }}_B" name="q{{ question.id }}" value="B" class="quiz-option">
-                    <label for="q{{ question.id }}_B">B) {{ question.option_b }}</label>
-                </div>
-                <div class="option" style="margin-bottom: 10px;">
-                    <input type="radio" id="q{{ question.id }}_C" name="q{{ question.id }}" value="C" class="quiz-option">
-                    <label for="q{{ question.id }}_C">C) {{ question.option_c }}</label>
-                </div>
-                <div class="option" style="margin-bottom: 10px;">
-                    <input type="radio" id="q{{ question.id }}_D" name="q{{ question.id }}" value="D" class="quiz-option">
-                    <label for="q{{ question.id }}_D">D) {{ question.option_d }}</label>
-                </div>
-            </div>
-            <div style="display: flex; align-items: start; gap: 10px; margin-top: 10px;">
-                <div class="feedback" style="display: none; flex: 1; padding: 10px; border-radius: 4px;"></div>
-                <button class="explanation-btn" style="display: none; padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap;">
-                    Show Explanation
-                </button>
-            </div>
-            <div class="explanation-text" style="display: none; margin-top: 10px; padding: 10px; background-color: #e9ecef; border-radius: 4px;">
-                <div class="loading-spinner" style="display: none; text-align: center;">
-                    <div class="spinner"></div>
-                    <p>Getting AI explanation...</p>
-                </div>
-                <div class="explanation-content"></div>
-            </div>
-            <!-- Add these right after the existing hidden inputs -->
-            <input type="hidden" class="question-text" value="{{ question.question }}">
-            <input type="hidden" class="correct-answer" value="{{ question.correct_answer }}">
-            <input type="hidden" class="option-a" value="{{ question.option_a }}">
-            <input type="hidden" class="option-b" value="{{ question.option_b }}">
-            <input type="hidden" class="option-c" value="{{ question.option_c }}">
-            <input type="hidden" class="option-d" value="{{ question.option_d }}">
-        </div>
-        {% endfor %}
-
-        <button id="submit-quiz" style="display: none; width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 20px;">
-            Submit Quiz
-        </button>
-
-        <div id="quiz-results" style="display: none; margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 4px;">
-            <h3>Quiz Results</h3>
-            <p id="score-display"></p>
-            
-            <div style="margin-top: 20px; display: flex; gap: 10px;">
-                <button id="retake-button" style="padding: 8px 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                    Retake Quiz
-                </button>
-                
+    <!-- Navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('student_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item">
+                <a href="{{ url_for('list_course', course_id=topic.course.course_info.id) }}">{{ topic.course.course_code }}</a>
+            </li>
+            <li class="breadcrumb-item active">
                 {% if is_subtopic_quiz %}
-                <form action="{{ url_for('recreate_quiz', topic_id=subtopic.id) }}?is_subtopic=true&subtopic_id={{ subtopic.id }}" method="POST" style="display: inline;">
+                    Quiz: {{ subtopic.subtopic_name }}
                 {% else %}
-                <form action="{{ url_for('recreate_quiz', topic_id=topic.id) }}?is_subtopic=false" method="POST" style="display: inline;">
+                    Quiz: {{ topic.topic_name }}
                 {% endif %}
-                    <button type="submit" style="padding: 8px 16px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
-                        Recreate Quiz
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Quiz Header -->
+    <div class="quiz-header mb-4">
+        <h2>
+            {% if is_subtopic_quiz %}
+                Subtopic Quiz: {{ subtopic.subtopic_name }}
+                <div class="text-muted">Topic: {{ topic.topic_name }}</div>
+            {% else %}
+                Topic Quiz: {{ topic.topic_name }}
+            {% endif %}
+        </h2>
+    </div>
+
+
+    <!-- Questions -->
+        <div id="quiz-container">
+            {% for question in questions %}
+            <div class="question-card mb-4">
+                <h4 class="mb-3">Question {{ loop.index }}: {{ question.question }}</h4>
+
+
+                <div class="options options-list">
+                    <div class="option form-check">
+                        <label class="form-check-label" for="q{{ question.id }}_A"><input type="radio" id="q{{ question.id }}_A" name="q{{ question.id }}" value="A" class="quiz-option form-check-input"> A) {{ question.option_a }}</label>
+                    </div>
+                    <div class="option form-check">
+                        <label class="form-check-label" for="q{{ question.id }}_B"><input type="radio" id="q{{ question.id }}_B" name="q{{ question.id }}" value="B" class="quiz-option form-check-input"> B) {{ question.option_b }}</label>
+                    </div>
+                    <div class="option form-check">
+                        <label class="form-check-label" for="q{{ question.id }}_C"><input type="radio" id="q{{ question.id }}_C" name="q{{ question.id }}" value="C" class="quiz-option form-check-input"> C) {{ question.option_c }}</label>
+                    </div>
+                    <div class="option form-check">
+                        <label class="form-check-label" for="q{{ question.id }}_D"><input type="radio" id="q{{ question.id }}_D" name="q{{ question.id }}" value="D" class="quiz-option form-check-input"> D) {{ question.option_d }}</label>
+                    </div>
+                </div>
+                
+                <div class="feedback mt-3"></div>
+                
+                <div style="display: flex; align-items: start; gap: 10px; margin-top: 10px;">
+                    <button class="explanation-btn" style="display: none; padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap;">
+                        Show Explanation
                     </button>
-                </form>
+                </div>
+
+                <div class="explanation-text" style="display: none; margin-top: 10px; padding: 10px; background-color: #e9ecef; border-radius: 4px;">
+                    <div class="loading-spinner" style="display: none; text-align: center;">
+                        <div class="spinner"></div>
+                        <p>Getting AI explanation...</p>
+                    </div>
+                    <div class="explanation-content"></div>
+                </div>
+                <!-- Add these right after the existing hidden inputs -->
+                <input type="hidden" class="question-text" value="{{ question.question }}">
+                <input type="hidden" class="correct-answer" value="{{ question.correct_answer }}">
+                <input type="hidden" class="option-a" value="{{ question.option_a }}">
+                <input type="hidden" class="option-b" value="{{ question.option_b }}">
+                <input type="hidden" class="option-c" value="{{ question.option_c }}">
+                <input type="hidden" class="option-d" value="{{ question.option_d }}">
+                
+            </div>
+            {% endfor %}
+
+            <button id="submit-quiz" type="submit" class="btn btn-primary">
+                    Submit Quiz
+            </button>
+
+            <div id="quiz-results">
+                <h3>Quiz Results</h3>
+                <p id="score-display"></p>
+                
+                <div style="margin-top: 20px; display: flex; gap: 10px;">
+                    <button id="retake-button" class="btn btn-primary">
+                        Retake Quiz
+                    </button>
+                    
+                    {% if is_subtopic_quiz %}
+                    <form action="{{ url_for('recreate_quiz', topic_id=subtopic.id) }}?is_subtopic=true&subtopic_id={{ subtopic.id }}" method="POST" style="display: inline;">
+                    {% else %}
+                    <form action="{{ url_for('recreate_quiz', topic_id=topic.id) }}?is_subtopic=false" method="POST" style="display: inline;">
+                    {% endif %}
+                        <button type="submit" class="btn btn-primary">
+                            Recreate Quiz
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
 </div>
 
 <script>

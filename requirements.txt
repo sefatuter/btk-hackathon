@@ -11,3 +11,5 @@ python-dotenv
 google-generativeai
 psycopg2
 email_validator
+markdown2
+python-markdown-math

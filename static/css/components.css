@@ -200,6 +200,10 @@ html {
     max-height: 400px;
     overflow-y: auto;
     margin-bottom: -4px;
+    display: flex;
+    flex-direction: column;
+    scroll-behavior: smooth;
+    scrollbar-width: thin;
     border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
@@ -221,6 +225,7 @@ html {
     margin-bottom: 1.5rem;
     transition: all var(--transition-timing);
     animation: slideIn 0.3s ease forwards;
+    flex-shrink: 0;
 }
 
 .chatbot-message {

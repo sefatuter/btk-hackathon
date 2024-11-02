@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
@@ -23,17 +24,17 @@
         <a href="{{ url_for('home') }}" class="btn btn-primary me-2">Home</a>
         <a href="{{ url_for('chatbot') }}" class="btn btn-success">Chatbot</a>
     </div>
-
+    
     <!-- Chat Box -->
-    <div class="chat-container mb-4">
+    <div class="chat-container mb-4" id="chat-box">
         <!-- Chat Messages -->
         <div class="chat-box mb-3">
             {% set combined_history = historyUser + historyAI %}
             {% set sorted_history = combined_history | sort(attribute='timestamp') %}
-            
+        
             {% for message in sorted_history %}
             <div class="message {% if message.sender == 'user' %}user-message{% else %}ai-message{% endif %} chatbot-message">
-                <div class="d-flex {% if message.sender == 'user' %}justify-content-end{% endif %}">  
+                <div class="d-flex {% if message.sender == 'user' %}justify-content-end{% endif %}">
                     <div class="message-content">
                         {% if message.text in ['```json\n{}\n```', '{}\n', '{}'] %}
                             <div class="error-message">Please Ask About University Courses.</div>
@@ -54,18 +55,18 @@
             </div>
             {% endfor %}
         </div>
+    
 
-        <!-- Prompt Input Form -->
-        <form method="POST" action="{{ url_for('student_dashboard') }}" class="prompt-form">
+        <form id="chat-form" class="prompt-form" action="{{ url_for('student_dashboard') }}" method="POST">
             <div class="input-group">
                 <input type="text" 
-                    id="user_question"
-                    name="user_question" 
+                    id="user_question" 
+                    name="user_question"
                     class="form-control" 
                     placeholder="Type your message here..."
                     required
                     autocomplete="off">
-                <button type="submit" class="btn btn-primary student-dashboard-button">
+                <button type="submit" class="btn btn-primary">
                     Send
                 </button>
             </div>
@@ -82,7 +83,7 @@
                         <th>Course Code</th>
                         <th>Course Name</th>
                         <th>Description</th>
-                        <th>Actions</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -91,12 +92,23 @@
                         <td>{{ course.course_code }}</td>
                         <td>{{ course.course_name }}</td>
                         <td>{{ course.description }}</td>
-                        <td>
-                            <a href="{{ url_for('list_course', course_id=course.id) }}" 
-                               class="btn btn-sm btn-primary list-course-btn">List Course</a>
-                            <form action="{{ url_for('delete_course', course_id=course.id) }}" 
-                                  method="POST" class="d-inline">
-                                <button type="submit" class="btn btn-sm btn-danger">Delete Course</button>
+                        <td class="student-dashboard-td">
+                            <form action="{{ url_for('list_course', course_id=course.id) }}" method="POST" class="list-course-form">
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    List Course
+                                </button>
+                            </form>
+                            <br>
+                            <form action="{{ url_for('create_note', course_id=course.id) }}" method="POST" class="create-note-form">
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    Create Lecture Note
+                                </button>
+                            </form>
+                            <br>
+                            <form action="{{ url_for('delete_course', course_id=course.id) }}" method="POST" class="delete-course-form">
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    Delete Course
+                                </button>
                             </form>
                         </td>
                     </tr>
@@ -108,47 +120,158 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const listButtons = document.querySelectorAll('.list-course-btn');
-    const loadingOverlay = document.getElementById('loadingOverlay');
+    document.addEventListener('DOMContentLoaded', function() {    
+        const listCourseForms = document.querySelectorAll('.list-course-form');    
+        const loadingOverlay = document.getElementById('loadingOverlay');    
+        // Function to remove overlay    
+        function removeOverlay() {        
+            loadingOverlay.classList.remove('active');        
+            document.body.classList.remove('loading-active');    
+        }    // Add submit handler to each list course form    
+        listCourseForms.forEach(form => {        
+            form.addEventListener('submit', function(e) {            
+                e.preventDefault();           
+                 // Show loading overlay            
+                 loadingOverlay.classList.add('active');            
+                 document.body.classList.add('loading-active');            
+                 // Submit the form after a slight delay            
+                 setTimeout(() => {                
+                    this.submit();            
+                }, 500);        
+            });    
+        });    
+        // Clean up overlay on page load/reload    
+        removeOverlay();    
+        // Handle browser back/forward navigation    
+        window.addEventListener('pageshow', 
+        function(event) {        
+            if (event.persisted) {            
+                removeOverlay();        
+            }    
+        });    // Additional safety cleanup for other navigation scenarios    
+        window.addEventListener('popstate', 
+        function() {        
+            removeOverlay();    
+        });
 
-    // Function to remove overlay
-    function removeOverlay() {
-        loadingOverlay.classList.remove('active');
-        document.body.classList.remove('loading-active');
+        const chatBox = document.querySelector('.chat-box');
+        const chatForm = document.getElementById('chat-form');
+    
+        function scrollChatToBottom() {
+            if (chatBox) {
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+    
+        // Scroll on initial load
+        scrollChatToBottom();
+    
+        // Scroll after dynamic content changes
+        const observer = new MutationObserver(scrollChatToBottom);
+        
+        if (chatBox) {
+            observer.observe(chatBox, {
+                childList: true,
+                subtree: true
+            });
+        }
+    
+        // Scroll after form submission
+        if (chatForm) {
+            chatForm.addEventListener('submit', function() {
+                // Small delay to ensure content is updated
+                setTimeout(scrollChatToBottom, 100);
+            });
+        }
+    
+        // Additional scroll trigger after images or other resources load
+        window.addEventListener('load', scrollChatToBottom);    
+    });
+    
+
+    // Chat kutusunu en alta kaydırma fonksiyonu
+    function scrollChatToBottom() {
+        const chatBox = document.getElementById('chat-box');
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Add click handler to each button
-    listButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Show loading overlay
-            loadingOverlay.classList.add('active');
-            document.body.classList.add('loading-active');
+    // Sayfa yüklendiğinde ve yeni mesaj eklendiğinde chat'i en alta kaydır
+    document.addEventListener('DOMContentLoaded', function() {
+        scrollChatToBottom();
+    });
 
-            // Navigate to the course listing page after a slight delay
-            setTimeout(() => {
-                window.location.href = this.href;
-            }, 500);
+    // Form gönderilmeden önce scroll pozisyonunu kaydet
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function() {
+            sessionStorage.setItem('shouldScrollToBottom', 'true');
         });
     });
 
-    // Clean up overlay on page load/reload
-    removeOverlay();
-
-    // Handle browser back/forward navigation
-    window.addEventListener('pageshow', function(event) {
-        // This triggers even when navigating from browser cache (back/forward)
-        if (event.persisted) {
-            removeOverlay();
+    // Sayfa yüklendiğinde scroll pozisyonunu kontrol et
+    window.addEventListener('load', function() {
+        if (sessionStorage.getItem('shouldScrollToBottom') === 'true') {
+            scrollChatToBottom();
+            sessionStorage.removeItem('shouldScrollToBottom');
         }
     });
 
-    // Additional safety cleanup for other navigation scenarios
-    window.addEventListener('popstate', function() {
-        removeOverlay();
+    // MutationObserver ile yeni mesajları izle
+    const chatBox = document.getElementById('chat-box');
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.addedNodes.length) {
+                scrollChatToBottom();
+            }
+        });
     });
-});
+
+    // Observer'ı başlat
+    observer.observe(chatBox, {
+        childList: true,
+        subtree: true
+    });
+
+    // Chat kutusuna yeni mesaj eklendiğinde otomatik kaydırma
+    const chatForm = document.getElementById('chat-form');
+    if (chatForm) {
+        chatForm.addEventListener('submit', function(e) {
+            setTimeout(scrollChatToBottom, 100); // Mesajın eklenmesi için kısa bir gecikme
+        });
+    }
+
+    // Function to save both page and chat box scroll positions
+    function saveScrollPositions() {
+        const chatBox = document.getElementById('chat-box');
+        sessionStorage.setItem('pageScrollPosition', window.scrollY);
+        sessionStorage.setItem('chatBoxScrollPosition', chatBox.scrollTop);
+    }
+
+    // Function to restore both scroll positions
+    function restoreScrollPositions() {
+        const pageScrollPosition = sessionStorage.getItem('pageScrollPosition');
+        const chatBoxScrollPosition = sessionStorage.getItem('chatBoxScrollPosition');
+        const chatBox = document.getElementById('chat-box');
+
+        if (pageScrollPosition) {
+            window.scrollTo(0, parseInt(pageScrollPosition));
+            sessionStorage.removeItem('pageScrollPosition');
+        }
+
+        if (chatBoxScrollPosition) {
+            chatBox.scrollTop = parseInt(chatBoxScrollPosition);
+            sessionStorage.removeItem('chatBoxScrollPosition');
+        }
+    }
+
+    // Save positions before form submission
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', saveScrollPositions);
+    });
+
+    // Restore positions after page load
+    window.addEventListener('load', restoreScrollPositions);
+    
 </script>
+
+
 {% endblock %}

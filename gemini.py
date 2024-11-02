@@ -157,4 +157,4 @@ model6 = genai.GenerativeModel(
 
     Format all text using Markdown. Use **bold** for emphasis on key terms. Include relevant formulas or equations if applicable. Maintain a professional, educational tone throughout. Avoid unnecessary jargon or overly technical language unless essential to the explanation. Your entire explanation should be thorough yet concise, focusing on clarity and understanding rather than length.
   '''
-)
+  )

@@ -710,34 +710,64 @@ Please provide:
 2. Why other options are incorrect
 3. Key concepts and points to remember"""
 
-@app.route('/api/get_explanation/<int:question_id>', methods=['GET'])
-def get_explanation(question_id):
+
+@app.route('/get_ai_explanation', methods=['POST'])
+def get_ai_explanation():
     try:
-        # Fetch question from database
-        question = Quiz.query.get_or_404(question_id)
-        
-        # Create options dictionary
+        markdowner = Markdown(extras={
+            'fenced-code-blocks': None,
+            'tables': None,
+            'break-on-newline': True,
+            'header-ids': None,
+            'markdown-in-html': True,
+            'math': None
+        })
+
+        data = request.json
+        question = data.get('question')
+        correct_answer = data.get('correct_answer')
         options = {
-            'A': question.option_a,
-            'B': question.option_b,
-            'C': question.option_c,
-            'D': question.option_d
+            'A': data.get('option_a'),
+            'B': data.get('option_b'),
+            'C': data.get('option_c'),
+            'D': data.get('option_d')
         }
+
+        # Simple prompt that lets Gemini use its system instruction
+        prompt = f'''Question: {question}
         
-        # Generate prompt for AI
-        prompt = generate_explanation_prompt(question.question, options)
+Correct Answer: {correct_answer}
+
+Options:
+A) {options['A']}
+B) {options['B']}
+C) {options['C']}
+D) {options['D']}'''
+
+        # Get explanation from Gemini
+        raw_explanation = generate_text(prompt, model6)
         
-        # Get explanation from AI using existing generate_text function
-        explanation = generate_text(prompt, model6)
+        # Convert markdown to HTML
+        html_content = markdowner.convert(raw_explanation)
+        safe_html = Markup(html_content)
+        
+        formatted_explanation = f'''
+        <div class="explanation-wrapper">
+            <div class="explanation-content">
+                {safe_html}
+            </div>
+        </div>
+        '''
         
         return jsonify({
-            'success': True,
-            'explanation': explanation
+            'explanation': formatted_explanation,
+            'status': 'success'
         })
+
     except Exception as e:
         return jsonify({
-            'success': False,
-            'error': str(e)
+            'explanation': f'An error occurred: {str(e)}',
+            'status': 'error'
         }), 500
 
 # AI section

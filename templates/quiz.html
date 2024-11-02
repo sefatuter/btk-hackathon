@@ -44,9 +44,19 @@
                 </button>
             </div>
             <div class="explanation-text" style="display: none; margin-top: 10px; padding: 10px; background-color: #e9ecef; border-radius: 4px;">
-                description
+                <div class="loading-spinner" style="display: none; text-align: center;">
+                    <div class="spinner"></div>
+                    <p>Getting AI explanation...</p>
+                </div>
+                <div class="explanation-content"></div>
             </div>
+            <!-- Add these right after the existing hidden inputs -->
+            <input type="hidden" class="question-text" value="{{ question.question }}">
             <input type="hidden" class="correct-answer" value="{{ question.correct_answer }}">
+            <input type="hidden" class="option-a" value="{{ question.option_a }}">
+            <input type="hidden" class="option-b" value="{{ question.option_b }}">
+            <input type="hidden" class="option-c" value="{{ question.option_c }}">
+            <input type="hidden" class="option-d" value="{{ question.option_d }}">
         </div>
         {% endfor %}
 
@@ -168,20 +178,69 @@ document.addEventListener('DOMContentLoaded', function() {
         quizSubmitted = true;
     });
 
-    // Handle explanation buttons
     document.querySelectorAll('.explanation-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            const explanationText = this.parentElement.nextElementSibling;
-            if (explanationText.style.display === 'none') {
-                explanationText.style.display = 'block';
+            const explanationContainer = this.parentElement.nextElementSibling;
+            const explanationContent = explanationContainer.querySelector('.explanation-content');
+            const loadingSpinner = explanationContainer.querySelector('.loading-spinner');
+            
+            if (explanationContainer.style.display === 'none') {
+                explanationContainer.style.display = 'block';
                 this.textContent = 'Close Explanation';
+                
+                // Only fetch explanation if we haven't already
+                if (!explanationContent.dataset.loaded) {
+                    const questionCard = this.closest('.question-card');
+                    const question = questionCard.querySelector('.question-text').value;
+                    const correctAnswer = questionCard.querySelector('.correct-answer').value;
+                    const optionA = questionCard.querySelector('.option-a').value;
+                    const optionB = questionCard.querySelector('.option-b').value;
+                    const optionC = questionCard.querySelector('.option-c').value;
+                    const optionD = questionCard.querySelector('.option-d').value;
+                    
+                    // Show loading spinner
+                    loadingSpinner.style.display = 'block';
+                    explanationContent.style.display = 'none';
+                    
+                    // Make API call to get AI explanation
+                    fetch('/get_ai_explanation', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            question: question,
+                            correct_answer: correctAnswer,
+                            option_a: optionA,
+                            option_b: optionB,
+                            option_c: optionC,
+                            option_d: optionD
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Hide loading spinner and show content
+                        loadingSpinner.style.display = 'none';
+                        explanationContent.style.display = 'block';
+                        
+                        // Update content with AI explanation
+                        explanationContent.innerHTML = data.explanation;
+                        explanationContent.dataset.loaded = 'true';
+                    })
+                    .catch(error => {
+                        loadingSpinner.style.display = 'none';
+                        explanationContent.style.display = 'block';
+                        explanationContent.innerHTML = 'Error loading explanation. Please try again.';
+                        console.error('Error:', error);
+                    });
+                }
             } else {
-                explanationText.style.display = 'none';
+                explanationContainer.style.display = 'none';
                 this.textContent = 'Show Explanation';
             }
         });
     });
-
+    
     // Handle retake quiz
     if (retakeButton) {
         retakeButton.addEventListener('click', function() {
@@ -197,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             document.querySelectorAll('.explanation-btn').forEach(btn => {
                 btn.style.display = 'none';
-                btn.textContent = 'Açıklamayı Göster';
+                btn.textContent = 'Show Explanation';
             });
             document.querySelectorAll('.explanation-text').forEach(div => {
                 div.style.display = 'none';

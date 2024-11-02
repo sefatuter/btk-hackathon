@@ -155,6 +155,9 @@
         .chat-messages::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
+        .timestamp {
+            color: black;
+        }
     </style>
 </head>
 <body>
@@ -164,7 +167,7 @@
     <div class="chat-container">
         <div class="chat-header">
             <h1 class="h3 mb-0">EduAI Assistant</h1>
-            <p class="mb-0">Eğitim asistanınız size yardımcı olmaya hazır</p>
+            <p class="mb-0">Your teaching assistant is ready to help you</p>
         </div>
 
         <div class="chat-messages" id="chatMessages">
@@ -172,21 +175,21 @@
                 <div class="d-flex align-items-start">
                     <img src="../static/images/catfu.jpeg" alt="AI" class="avatar">
                     <div class="message-content">
-                        Merhaba! Size eğitim ve dersleriniz konusunda nasıl yardımcı olabilirim?
-                        <div class="timestamp">Şimdi</div>
+                        Hello! How can I help you with your education and classes?
+                        <div class="timestamp">Just Now</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="typing-indicator" id="typingIndicator">
-            <i class="bi bi-three-dots"></i> AI yanıt yazıyor...
+            <i class="bi bi-three-dots"></i> AI is responding...
         </div>
 
         <div class="chat-input">
             <form id="chatForm" class="d-flex">
                 <input type="text" class="form-control" id="userInput" 
-                       placeholder="Mesajınızı yazın..." required>
+                       placeholder="Write your message..." required>
                 <button type="submit" class="btn btn-primary px-4 ms-2">
                     <i class="bi bi-send"></i>
                 </button>

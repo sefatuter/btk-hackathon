@@ -77,6 +77,71 @@ html {
     opacity: 1;
 }
 
+.btn-list, .btn-create, .btn-delete {
+    background-color: #3b82f6 !important;
+    border-color: #2563eb !important;
+    color: var(--text-light) !important;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all var(--transition-timing);
+    justify-content: flex-start !important; /* Align content to left */
+    padding-left: 0.75rem !important; /* Add left padding */
+}
+
+/* Button color variations */
+.btn-create {
+    background-color: #10b981 !important;
+    border-color: #059669 !important;
+}
+
+.btn-delete {
+    background-color: #ef4444 !important;
+    border-color: #dc2626 !important;
+}
+
+/* Hover states */
+.btn-list:hover,
+.btn-create:hover,
+.btn-delete:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--box-shadow-md);
+}
+
+.btn-list:hover { background-color: #2563eb !important; }
+.btn-create:hover { background-color: #059669 !important; }
+.btn-delete:hover { background-color: #dc2626 !important; }
+
+
+/* Table specific button adjustments */
+.student-dashboard-td {
+    padding: 0.5rem !important;
+}
+
+.student-dashboard-td .btn {
+    width: 100%;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    margin-bottom: 0.25rem !important;
+}
+
+.student-dashboard-td form {
+    margin-bottom: 0.25rem !important;
+}
+
+.student-dashboard-td form:last-child {
+    margin-bottom: 0 !important;
+}
+
+.student-dashboard-td svg {
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+.student-dashboard-td br {
+    display: none;
+}
+
 /* Quiz Button - Combined with general button styles */
 .quiz-button {
     background: var(--primary-color);
@@ -174,14 +239,104 @@ html {
     margin-bottom: 2rem;
 }
 
-/* Chat Components */
-.chat-container {
+/* Course Progress Section Styling */
+.course-progress-section {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.course-item {
+    background: var(--chat-bg-light);
+    border-radius: var(--border-radius);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.course-item:last-child {
+    margin-bottom: 0; /* Remove margin from last item */
+}
+
+.course-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow-sm);
+}
+
+.course-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.progress-bar-container {
+    width: 120px;
+    height: 6px;
+    background: var(--chat-bg-light);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.quiz-list {
+    border-left: 2px solid var(--chat-bg-light);
+}
+
+.quiz-item {
+    border-radius: var(--border-radius);
     background: var(--chat-container-light);
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: var(--box-shadow-md);
-    margin-bottom: 2rem;
-    border: 1px solid rgba(0, 0, 0, 0.08);
+    transition: background-color 0.2s ease;
+}
+
+.quiz-item:hover {
+    background: var(--chat-bg-light);
+}
+
+.quiz-name {
+    font-size: 0.9rem;
+    color: var(--text-color);
+    opacity: 0.9;
+}
+
+.quiz-stats {
+    color: var(--text-muted);
+}
+
+.stat-item {
+    font-size: 0.85rem;
+}
+
+.stat-item svg {
+    stroke: var(--primary-color);
+    opacity: 0.8;
+}
+
+.course-list:empty::after {
+    content: 'No courses with quizzes yet';
+    display: block;
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Chat Components */
+.chat-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-container {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow-sm);
+    padding: 2rem;
 }
 
 .chatbot-container {
@@ -196,28 +351,22 @@ html {
 .chat-box {
     background: var(--chat-bg-light);
     border-radius: var(--border-radius);
-    padding: 1rem;
-    max-height: 400px;
-    overflow-y: auto;
-    margin-bottom: -4px;
-    display: flex;
-    flex-direction: column;
-    scroll-behavior: smooth;
-    scrollbar-width: thin;
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+    border: 1px solid var(--border-color);
+    margin-bottom: 1rem;
 }
 
-.chat-box::-webkit-scrollbar {
-    width: 8px;
+.course-progress-section::-webkit-scrollbar {
+    width: 6px;
 }
 
-.chat-box::-webkit-scrollbar-track {
-    background: transparent;
+.course-progress-section::-webkit-scrollbar-track {
+    background: var(--chat-bg-light);
 }
 
-.chat-box::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
+.course-progress-section::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    opacity: 0.7;
 }
 
 /* Message Components */
@@ -270,6 +419,60 @@ html {
     margin-left: auto;
 }
 
+/* User Info Container */
+.user-info-container {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow-sm);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.user-info-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    gap: 1rem;
+}
+
+.user-avatar {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    align-self: flex-start;
+    color: var(--text-light);
+}
+
+.user-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-color);
+    align-self: flex-start;
+}
+
+.user-role {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin: 0.25rem 0 1rem 0;
+    align-self: flex-start;
+}
+
+.quick-links {
+    display: flex;
+    gap: 0.75rem;
+    align-self: flex-start; /* Align buttons to the left */
+}
+
 /* AI Message Styles */
 .ai-message {
     justify-content: flex-start;
@@ -287,7 +490,11 @@ html {
 
 /* Form Components */
 .prompt-form {
-    margin-top: 0;
+    margin-top: auto; /* Push the form to the bottom */
+    padding: 1rem;
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
 }
 
 .prompt-form .input-group {
@@ -821,6 +1028,16 @@ body.loading-active {
     .py-8 {
         padding-top: 3rem !important;
         padding-bottom: 3rem !important;
+    }
+}
+
+@media (max-width: 992px) {
+    .user-info-container {
+        padding: 1.5rem;
+    }
+
+    .chat-container {
+        height: 350px;
     }
 }
 

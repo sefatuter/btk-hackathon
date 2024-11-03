@@ -11,71 +11,152 @@
 </div>
 
 <div class="dashboard-container">
-    <!-- Dashboard Header -->
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Student Dashboard</h1>
-        <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline-primary">
-            <i class="bi bi-arrow-clockwise"></i> Refresh
-        </a>
-    </div>
-
-    <!-- Quick Links -->
-    <div class="quick-links mb-4">
-        <a href="{{ url_for('home') }}" class="btn btn-primary me-2">Home</a>
-        <a href="{{ url_for('chatbot') }}" class="btn btn-success">Chatbot</a>
-    </div>
-    
-    <!-- Chat Box -->
-    <div class="chat-container mb-4" id="chat-box">
-        <!-- Chat Messages -->
-        <div class="chat-box mb-3">
-            {% set combined_history = historyUser + historyAI %}
-            {% set sorted_history = combined_history | sort(attribute='timestamp') %}
-        
-            {% for message in sorted_history %}
-            <div class="message {% if message.sender == 'user' %}user-message{% else %}ai-message{% endif %} chatbot-message">
-                <div class="d-flex {% if message.sender == 'user' %}justify-content-end{% endif %}">
-                    <div class="message-content">
-                        {% if message.text in ['```json\n{}\n```', '{}\n', '{}'] %}
-                            <div class="error-message">Please Ask About University Courses.</div>
-                        {% elif message.sender == 'ai' %}
-                            <div class="success-message">Course Added Successfully.</div>
-                            {% set course = json_to_table | selectattr("id", "equalto", message.course_id) | list | first %}
-                            {% if course %}
-                                <div>Course Code: {{ course.course_code }}</div>
-                                <div>Course Name: {{ course.course_name }}</div>
-                            {% else %}
-                                <div>Course information not found.</div>
-                            {% endif %}
-                        {% else %}
-                            {{ message.text }}
-                        {% endif %}
+    <!-- Top Section Grid -->
+    <div class="dashboard-top-grid">
+        <!-- User Info Container -->
+        <div class="user-info-container">
+            <!-- Top Section -->
+            <div class="user-info-top">
+                <div class="user-info-content">
+                    <div class="user-avatar">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </div>
+                    <h2 class="user-name">{{ current_user.username }}</h2>
+                    <p class="user-role">Student</p>
+                    <div class="quick-links mb-4">
+                        <a href="{{ url_for('home') }}" class="btn btn-primary me-2">Home</a>
+                        <a href="{{ url_for('chatbot') }}" class="btn btn-success">Chatbot</a>
                     </div>
                 </div>
             </div>
-            {% endfor %}
-        </div>
-    
-
-        <form id="chat-form" class="prompt-form" action="{{ url_for('student_dashboard') }}" method="POST">
-            <div class="input-group">
-                <input type="text" 
-                    id="user_question" 
-                    name="user_question"
-                    class="form-control" 
-                    placeholder="Ask about university courses (e.g. Add course CSE101 introduction to computer science)"
-                    required
-                    autocomplete="off">
-                <button type="submit" class="btn btn-primary">
-                    Send
-                </button>
+            
+            <!-- Course Progress Section -->
+            <div class="course-progress-section">
+                <div class="course-list">
+                    {% set grouped_progress = {} %}
+                    {% for progress in student_progress %}
+                        {% if progress.quiz_course_name not in grouped_progress %}
+                            {% set _ = grouped_progress.update({progress.quiz_course_name: {
+                                'total': 0,
+                                'correct': 0,
+                                'quizzes': []
+                            }}) %}
+                        {% endif %}
+                        {% set _ = grouped_progress[progress.quiz_course_name].update({
+                            'total': grouped_progress[progress.quiz_course_name]['total'] + progress.total_questions,
+                            'correct': grouped_progress[progress.quiz_course_name]['correct'] + progress.correct_questions
+                        }) %}
+                        {% set _ = grouped_progress[progress.quiz_course_name]['quizzes'].append({
+                            'name': progress.quiz_name,
+                            'total': progress.total_questions,
+                            'correct': progress.correct_questions,
+                            'attempts': progress.quiz_counter
+                        }) %}
+                    {% endfor %}
+            
+                    {% for course_name, course_data in grouped_progress.items() %}
+                        <div>
+                            <div class="course-item">
+                                <h3 class="course-name">{{ course_name }}</h3>
+                                <div class="course-progress">
+                                    <div class="progress-bar-container">
+                                        <div class="progress-bar progress-bar-{% if course_data.total > 0 %}{{ ((course_data.correct/course_data.total*100)|round(-1)|int) }}{% else %}0{% endif %}"></div>
+                                    </div>
+                                    <span>{{ course_data.correct }}/{{ course_data.total }}</span>
+                                </div>
+                            </div>
+                            {% if course_data.quizzes %}
+                                <div class="quiz-list">
+                                    {% for quiz in course_data.quizzes %}
+                                        <div class="quiz-item">
+                                            <span class="quiz-name">{{ quiz.name }}</span>
+                                            <div class="quiz-stats">
+                                                <span class="stat-item" title="Correct Questions">
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <polyline points="20 6 9 17 4 12"></polyline>
+                                                    </svg>
+                                                    {{ quiz.correct }}/{{ quiz.total }}
+                                                </span>
+                                                <span class="stat-item" title="Number of Attempts">
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M12 20v-6M6 20V10M18 20V4"></path>
+                                                    </svg>
+                                                    {{ quiz.attempts }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No courses with quizzes yet</p>
+                    {% endfor %}
+                </div>
             </div>
-        </form>
+        </div>
+
+        <!-- Chat Container -->
+        <div class="chat-wrapper">
+            <div class="chat-container" id="chat-box">
+                <!-- Chat Messages -->
+                <div class="chat-box mb-3">
+                    {% set combined_history = historyUser + historyAI %}
+                    {% set sorted_history = combined_history | sort(attribute='timestamp') %}
+                
+                    {% for message in sorted_history %}
+                    <div class="message {% if message.sender == 'user' %}user-message{% else %}ai-message{% endif %} chatbot-message">
+                        <div class="d-flex {% if message.sender == 'user' %}justify-content-end{% endif %}">
+                            <div class="message-content">
+                                {% if message.text in ['```json\n{}\n```', '{}\n', '{}'] %}
+                                    <div class="error-message">Please Ask About University Courses.</div>
+                                {% elif message.sender == 'ai' %}
+                                    <div class="success-message">Course Added Successfully.</div>
+                                    {% set course = json_to_table | selectattr("id", "equalto", message.course_id) | list | first %}
+                                    {% if course %}
+                                        <div>Course Code: {{ course.course_code }}</div>
+                                        <div>Course Name: {{ course.course_name }}</div>
+                                    {% else %}
+                                        <div>Course information not found.</div>
+                                    {% endif %}
+                                {% else %}
+                                    {{ message.text }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <form id="chat-form" class="prompt-form" action="{{ url_for('student_dashboard') }}" method="POST">
+                    <div class="input-group">
+                        <input type="text" 
+                            id="user_question" 
+                            name="user_question"
+                            class="form-control" 
+                            placeholder="Ask about university courses..."
+                            required
+                            autocomplete="off">
+                        <button type="submit" class="btn btn-primary">
+                            Send
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
-    <!-- Courses Table -->
+    <!-- Bottom Section - Courses Table -->
     <div class="courses-section">
-        <h2>University Courses</h2>
+        <div class="section-header">
+            <h2>University Courses</h2>
+            <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-clockwise"></i> Refresh
+            </a>
+        </div>
         <div class="table-responsive">
             <table class="table">
                 <thead>
@@ -94,19 +175,34 @@
                         <td>{{ course.description }}</td>
                         <td class="student-dashboard-td">
                             <form action="{{ url_for('list_course', course_id=course.id) }}" method="POST" class="list-course-form">
-                                <button type="submit" class="btn btn-sm btn-primary">
+                                <button type="submit" class="btn btn-sm btn-list">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                                    </svg>
                                     List Course
                                 </button>
                             </form>
-                            <br>
                             <form action="{{ url_for('create_note', course_id=course.id) }}" method="POST" class="create-note-form">
-                                <button type="submit" class="btn btn-sm btn-primary">
+                                <button type="submit" class="btn btn-sm btn-create">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                    </svg>
                                     Create Lecture Note
                                 </button>
                             </form>
-                            <br>
                             <form action="{{ url_for('delete_course', course_id=course.id) }}" method="POST" class="delete-course-form">
-                                <button type="submit" class="btn btn-sm btn-primary">
+                                <button type="submit" class="btn btn-sm btn-delete">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M3 6h18"></path>
+                                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                    </svg>
                                     Delete Course
                                 </button>
                             </form>

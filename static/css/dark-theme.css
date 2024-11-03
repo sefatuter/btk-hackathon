@@ -58,6 +58,31 @@
             var(--gradient-start) 100%
         );
     }
+    
+    .course-progress-section {
+        background: var(--card-bg);
+        border-color: var(--border-color);
+    }
+    
+    .course-item {
+        background: var(--chat-bg-dark);
+    }
+    
+    .quiz-item {
+        background: var(--chat-container-dark);
+    }
+    
+    .quiz-item:hover {
+        background: var(--chat-bg-dark);
+    }
+    
+    .progress-bar-container {
+        background: var(--chat-bg-dark);
+    }
+    
+    .quiz-list {
+        border-left-color: var(--border-color);
+    }
 
     /* Chat Elements Dark Theme */
     .chat-box {
@@ -186,6 +211,18 @@
             background-color: rgba(255, 255, 255, 0.15);
             color: var(--text-light);
         }
+    }
+
+    .btn-list,
+    .btn-create,
+    .btn-delete {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-list:hover,
+    .btn-create:hover,
+    .btn-delete:hover {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
     }
 
     /* Table Styles Dark Theme */
@@ -427,6 +464,27 @@
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
 
+   .user-info-container,
+   .courses-section {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+    }
+
+    .info-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+    }
+
+    .user-info-grid {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+    }
+
+    .user-info-top {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+    }
+
     /* Typing Indicator Dark Theme */
     .typing-indicator {
         color: var(--text-muted);
@@ -436,4 +494,13 @@
         background: linear-gradient(135deg, var(--gradient-middle) 0%, var(--gradient-start) 100%);
     }
 
+    /* Navbar Dark Theme */
+    .navbar {
+        background: var(--card-bg);
+        border-bottom-color: var(--border-color);
+    }
+
+    .navbar-brand {
+        color: var(--text-color);
+    }
 }

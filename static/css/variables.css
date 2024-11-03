@@ -3,6 +3,11 @@
     transition: none !important;
 }
 
+/* Prevent transitions during theme changes */
+.theme-switching * {
+    transition: none !important;
+}
+
 /* Variables */
 :root {
     /* Core Brand Colors */

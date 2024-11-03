@@ -6,7 +6,7 @@
 @import 'components.css';
 @import 'dark-theme.css';
 
-/* Apply performance optimizations */
+/* Base Performance optimizations */
 .sidebar,
 .chat-container,
 .message-content {
@@ -25,7 +25,7 @@
     }
 }
 
-/* Empty State Styles */
+/* Table States */
 .table tbody:empty::after {
     content: 'No courses available';
     display: block;
@@ -35,7 +35,6 @@
     font-style: italic;
 }
 
-/* Loading States */
 .table.loading tbody tr td {
     position: relative;
     overflow: hidden;
@@ -62,13 +61,12 @@
     background-color: transparent;
 }
 
-/* Utility Overrides */
 .table td:last-child {
     white-space: nowrap;
     text-align: right;
 }
 
-/* Dropdown Component Styles */
+/* Dropdown Styles */
 .dropdown-menu {
     background-color: var(--card-bg);
     border-color: var(--border-color);
@@ -82,13 +80,21 @@
     background-color: var(--border-color);
 }
 
-/* Icon Alignments */
+/* Button & Icon Styles */
 .btn i {
     vertical-align: middle;
     line-height: 1;
 }
 
-/* Link States */
+.btn-close {
+    opacity: 0.8;
+}
+
+.btn-close:hover {
+    opacity: 1;
+}
+
+/* Link Styles */
 a:not(.btn) {
     color: var(--text-color);
     text-decoration: none;
@@ -98,101 +104,53 @@ a:not(.btn):hover {
     color: var(--primary-color);
 }
 
-/* Bootstrap Overrides */
-.btn-close {
-    opacity: 0.8;
-}
-
-.btn-close:hover {
-    opacity: 1;
-}
-
-/* Accessibility */
+/* Focus States */
 .btn:focus,
 .form-control:focus {
     outline: none;
     box-shadow: 0 0 0 2px var(--primary-color);
 }
 
-/* Additional Utility Classes */
-.text-muted {
-    color: var(--text-muted) !important;
-}
-
-/* Backdrop Filter Support */
-@supports (backdrop-filter: blur(5px)) {
-    .sidebar-content .btn,
-    .user-info {
-        backdrop-filter: blur(5px);
-    }
-}
-
-/* Image Optimization */
-img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-}
-
-/* Focus Visible Polyfill */
-.js-focus-visible :focus:not(.focus-visible) {
-    outline: none;
-}
-
-/* High Contrast Mode */
-@media (forced-colors: active) {
-    .btn,
-    .table,
-    .chat-container {
-        border: 1px solid currentColor;
-    }
-}
-
-/* Print Optimizations */
-@media print {
-    .no-print {
-        display: none !important;
-    }
-    
-    a[href]:after {
-        content: " (" attr(href) ")";
-    }
-}
-
-/* Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-    }
-}
-
-/* Animations */
-@keyframes shimmer {
-    0% { background-position: -1000px 0; }
-    100% { background-position: 1000px 0; }
-}
-
-/* Theme Transition */
+/* Theme Transition Handling */
 body {
     transition: background-color var(--transition-timing),
                 color var(--transition-timing);
 }
 
-/* Form Input Enhancements */
-input::placeholder,
-textarea::placeholder {
-    color: var(--text-muted);
+body.modal-open {
+    overflow: hidden;
 }
 
-/* Selection Styles */
-::selection {
-    background-color: var(--primary-color);
-    color: var(--text-light);
+body.transitioning {
+    pointer-events: none;
+}
+
+.offcanvas.hiding {
+    pointer-events: none;
+}
+
+/* Fix for transition stuck state */
+.offcanvas-backdrop.fade {
+    transition: opacity 0.3s ease !important;
+}
+
+/* Prevent transition conflicts */
+.offcanvas, 
+.offcanvas.show, 
+.offcanvas.hiding {
+    visibility: visible;
+}
+
+/* Utility Classes */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Image Handling */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
 }
 
 /* Box Shadow Utilities */
@@ -208,6 +166,19 @@ textarea::placeholder {
     box-shadow: var(--box-shadow-lg) !important;
 }
 
+/* Form Element Styling */
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-muted);
+}
+
+/* Selection Styling */
+::selection {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+}
+
+/* Content Styling */
 .explanation-wrapper {
     max-width: 800px;
     margin: 0 auto;
@@ -260,10 +231,47 @@ textarea::placeholder {
     font-style: italic;
 }
 
-/* Style for math equations */
 .explanation-content .math {
     padding: 1rem;
     background: #f7fafc;
     border-radius: 4px;
     overflow-x: auto;
+}
+
+/* Accessibility */
+@media (forced-colors: active) {
+    .btn,
+    .table,
+    .chat-container {
+        border: 1px solid currentColor;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    a[href]:after {
+        content: " (" attr(href) ")";
+    }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Animations */
+@keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
 }

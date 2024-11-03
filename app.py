@@ -3,7 +3,7 @@ import json
 from flask import Flask, render_template, url_for, flash, redirect, request, jsonify, session
 from flask_login import login_required, login_user, logout_user, UserMixin, LoginManager, current_user
 from forms import RegistrationForm, LoginForm
-from models import db, bcrypt, User, ChatHistory, CourseInfo, Course, Topic, Subtopic, Quiz, SubtopicQuiz, Note
+from models import db, bcrypt, User, ChatHistory, CourseInfo, Course, Topic, Subtopic, Quiz, SubtopicQuiz, Note, StudentProgress
 from dotenv import load_dotenv
 import requests
 import os
@@ -229,9 +229,9 @@ def student_dashboard():
     
     historyAI = ChatHistory.query.filter_by(sender='ai').order_by(ChatHistory.timestamp).all()
     historyUser = ChatHistory.query.filter_by(sender='user').order_by(ChatHistory.timestamp).all()
-   
+    student_progress = StudentProgress.query.all()
            
-    return render_template('student_dashboard.html', historyUser=historyUser, historyAI=historyAI, json_to_table=courses)
+    return render_template('student_dashboard.html', historyUser=historyUser, historyAI=historyAI, json_to_table=courses, student_progress=student_progress)
 
 @app.route('/chatbot', methods=['GET', 'POST'])
 def chatbot():

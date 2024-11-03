@@ -85,3 +85,12 @@ class Note(db.Model):
     course = db.relationship('Course', backref='notes')
     topic = db.relationship('Topic', backref='notes')
     subtopic = db.relationship('Subtopic', backref='notes')
+
+class StudentProgress(db.Model):
+    __tablename__ = 'student_progress'
+    id = db.Column(db.Integer, primary_key=True)
+    quiz_name = db.Column(db.Text, nullable=False)
+    quiz_course_name = db.Column(db.Text, nullable=False)
+    total_questions = db.Column(db.Integer, nullable=False)
+    correct_questions = db.Column(db.Integer, nullable=False)
+    quiz_counter = db.Column(db.Integer, nullable=False)

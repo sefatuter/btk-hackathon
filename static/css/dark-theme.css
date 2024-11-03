@@ -124,20 +124,7 @@
         }
     }
 
-    .form-check {
-        background-color: transparent;
-        border-radius: var(--border-radius);
-        padding: 0.75rem 1rem;
-        margin-bottom: 0.5rem;
-        border: 1px solid var(--border-color);
-        transition: all var(--transition-timing);
-    }
-
-    .form-check:hover {
-        background-color: var(--quiz-option-hover-bg);
-        border-color: var(--quiz-radio-hover-border);
-    }
-
+    /* Quiz Styles - Dark Theme */
     .form-check-input[type="radio"] {
         width: 1.25rem;
         height: 1.25rem;
@@ -152,6 +139,7 @@
     .form-check-input[type="radio"]:hover {
         border-color: var(--quiz-radio-hover-border);
         background-color: var(--quiz-radio-hover-bg);
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
     }
 
     .form-check-input[type="radio"]:checked {
@@ -169,8 +157,9 @@
         transform: translate(-50%, -50%);
         border-radius: 50%;
         background: linear-gradient(135deg, var(--primary-color), #4d7cc7);
-        box-shadow: 0 0 8px rgba(42, 82, 152, 0.4);
+        box-shadow: 0 0 8px rgba(77, 124, 199, 0.4);
     }
+
 
     .form-check-input[type="radio"]:focus {
         border-color: var(--primary-color);
@@ -199,12 +188,12 @@
     /* Correct/Incorrect answer styles */
     .form-check.correct {
         background-color: rgba(16, 185, 129, 0.2);
-        border-color: #10b981;
+        border-color: #059669;
     }
 
     .form-check.incorrect {
         background-color: rgba(239, 68, 68, 0.2);
-        border-color: #ef4444;
+        border-color: #dc2626;
     }
 
     /* Form Controls Dark Theme */
@@ -402,10 +391,16 @@
     /* Status Messages Dark Theme */
     .success-message {
         background-color: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+        border-color: #059669;
+        box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
     }
 
     .error-message {
         background-color: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        border-color: #dc2626;
+        box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
     }
 
     /* Scrollbar Dark Theme */

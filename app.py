@@ -270,7 +270,7 @@ def chatbot():
             # Generate HTML dynamically for each quiz entry
             ai_response = "<div>"
             for progress in test["progress"]:
-                ai_response += f"""
+                ai_response += f"""<div>
                     <div class='progress-entry'>
                         <p><strong>Quiz Name:</strong> {progress['quiz_name']}</p>
                         <p><strong>Course Name:</strong> {progress['quiz_course_name']}</p>

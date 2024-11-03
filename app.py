@@ -253,8 +253,35 @@ def chatbot():
             ai_response = '''EduAI Assistant is your dedicated educational companion, ready to assist you with a variety of tasks related to your coursework.You can ask the bot to show your current courses, guide you on what tasks to prioritize, or provide insights into your academic progress.'''
         
         elif user_message == "Show my progress":
-            ai_response = '''Showing progress'''
-            
+            student_progress = StudentProgress.query.all()
+            test = {
+                "progress": [
+                    {
+                        "quiz_name": progress.quiz_name,
+                        "quiz_course_name": progress.quiz_course_name,
+                        "total_questions": progress.total_questions,
+                        "correct_questions": progress.correct_questions,
+                        "quiz_counter": progress.quiz_counter
+                    }
+                    for progress in student_progress
+                ]
+            }
+
+            # Generate HTML dynamically for each quiz entry
+            ai_response = "<div>"
+            for progress in test["progress"]:
+                ai_response += f"""
+                    <div class='progress-entry'>
+                        <p><strong>Quiz Name:</strong> {progress['quiz_name']}</p>
+                        <p><strong>Course Name:</strong> {progress['quiz_course_name']}</p>
+                        <p><strong>Total Questions:</strong> {progress['total_questions']}</p>
+                        <p><strong>Correct Answers:</strong> {progress['correct_questions']}</p>
+                        <p><strong>Attempt Count:</strong> {progress['quiz_counter']}</p>
+                        <hr>
+                    </div>
+                """
+            ai_response += "</div>"
+                
         elif user_message == "Quiz Assistance":
             # Retrieve all courses
             courses = Course.query.all()
@@ -860,7 +887,6 @@ def create_note(course_id):
         flash(f'An error occurred: {str(e)}', 'error')
         return redirect(url_for('student_dashboard'))
 
-
 # to be continued..
 def generate_explanation_prompt(question, options):
     """Generate a comprehensive prompt for the AI explanation"""
@@ -878,7 +904,6 @@ Please provide:
 1. A detailed explanation of the correct answer
 2. Why other options are incorrect
 3. Key concepts and points to remember"""
-
 
 @app.route('/get_ai_explanation', methods=['POST'])
 def get_ai_explanation():

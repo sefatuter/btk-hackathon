@@ -59,6 +59,12 @@ CREATE DATABASE eduaidb;
 \q
 ```
 
+- .env dosyası oluşturup içine gemini keyini giriniz:
+```
+GEMINI_API_KEY=
+```
+
+- 
 ```
 git clone https://github.com/sefatuter/hackathon.git
 cd hackathon

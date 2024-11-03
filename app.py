@@ -23,7 +23,6 @@ db.init_app(app)
 bcrypt.init_app(app)
 login_manager.init_app(app)
 login_manager.login_view = 'login'
-app.permanent_session_lifetime = timedelta(days=1)
 
 
 @app.route('/')

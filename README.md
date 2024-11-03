@@ -181,5 +181,25 @@ S.T -------------------------------------------------------
 
   login yaptıktan sonra "You are taking a step through Edugate!" türü bir pop up çıkar
 
+  take subtopic and topic quiz button "ai is processing.." pop up 
+
+  arama butonu üstüne not ekleyebilirsin
+
+  radio button çevresini görünür hale getir, dark mode için 
+
+  menüden çıkarken geçiş yerinde kalıyor fix
+
+  quiz ekranı tarzı düzenle
+
+  butonlar renk ve düzeni, list, create note, delete butonları iconlu düzen
+
+  register - login sayfası düzenleme, home page düzenleme
+
+  recreate butonunda, show explanation butonunda ai is processing çıkar
+
+  chatbot'a öneri sorular eklenebilir.
+
+  chat kısmına öneri cümlesi
+
 ```
 

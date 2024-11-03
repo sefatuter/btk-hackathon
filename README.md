@@ -176,29 +176,29 @@ S.T -------------------------------------------------------
   
   -( bulut ) tablo ekranına, progress kısmı, öğrenci ilerlemesini kayıt altına alma 
 
-  -( bulut ) menüden çıkarken geçiş yerinde kalıyor fix
+  X -( bulut ) menüden çıkarken geçiş yerinde kalıyor fix
 
-  -( bulut ) butonlar renk ve düzeni, list, create note, delete butonları iconlu düzen
+  X -( bulut ) butonlar renk ve düzeni, list, create note, delete butonları iconlu düzen
 
-  -( bulut ) course add input kısmına öneri cümlesi
+  X -( bulut ) course add input kısmına öneri cümlesi
 
-  -( bulut ) flash white fix
+  X -( bulut ) flash white fix
 
-  -( sefa ) login yaptıktan sonra "You are taking a step through Edugate!" türü bir pop up çıkar
+  X -( sefa ) login yaptıktan sonra "You are taking a step through Edugate!" türü bir pop up çıkar
 
-  -( sefa ) register - login sayfası düzenleme, home page düzenleme
+  X -( sefa ) register - login sayfası düzenleme, home page düzenleme
 
-  -( sefa ) chatbot'a öneri sorular eklenebilir. buton ekle butona tıklayınca mesaj göndersin (show my course, what to do, show my progress)
+  X -( sefa ) chatbot'a öneri sorular eklenebilir. buton ekle butona tıklayınca mesaj göndersin (show my course, what to do, show my progress)
 
-  -( sefa ) create note sayfası düzenle
+  X -( sefa ) create note sayfası düzenle
 
-  -( pelin ) take subtopic and topic quiz button "ai is processing.." pop up 
+  X -( pelin ) take subtopic and topic quiz button "ai is processing.." pop up 
 
-  -( pelin ) radio button çevresini görünür hale getir, dark mode için 
+  X -( pelin ) radio button çevresini görünür hale getir, dark mode için 
 
-  -( pelin ) quiz ekranı tarzı düzenle
+  X -( pelin ) quiz ekranı tarzı düzenle
 
-  -( pelin ) recreate butonunda, show explanation butonunda ai is processing çıkar
+  X -( pelin ) recreate butonunda, show explanation butonunda ai is processing çıkar
 
 
   - list course butonuna tıklandıktan sonra create note butonu ortaya çıksın 

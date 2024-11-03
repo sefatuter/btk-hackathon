@@ -25,7 +25,21 @@
                          loading="lazy">
                     <div class="message-content">
                         How can I help you with your education and coursework today?
-                        <div class="text-muted small mt-1">Now</div>
+                        <div class="suggestion-buttons text-center mt-2">
+                            <button class="btn btn-light btn-sm" onclick="sendSuggestion('Show my course')">
+                                <i class="bi bi-book"></i> Show my course
+                            </button>
+                            <button class="btn btn-light btn-sm" onclick="sendSuggestion('What to do')">
+                                <i class="bi bi-list-check"></i> What to do
+                            </button>
+                            <button class="btn btn-light btn-sm" onclick="sendSuggestion('Show my progress')">
+                                <i class="bi bi-graph-up"></i> Show my progress
+                            </button>
+                            <button class="btn btn-light btn-sm" onclick="sendSuggestion('Quiz Assistance')">
+                                <i class="bi bi-graph-up"></i> Quiz Assistance
+                            </button>
+                        </div>
+                        <div class="text-muted small">Now</div>
                     </div>
                 </div>
             </div>
@@ -53,8 +67,10 @@
 </div>
 
 <!-- Additional Scripts -->
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+
 <script>
     // Initialize markdown and syntax highlighting
     marked.setOptions({
@@ -125,12 +141,12 @@
     });
 
     function addMessage(message, type) {
-        const chatMessages = document.getElementById('chatMessages'); // This ID must match
+        const chatMessages = document.getElementById('chatMessages'); 
         if (!chatMessages) {
             console.error('Chat messages container not found!');
             return;
         }
-        
+    
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${type}-message chatbot-message`;
         
@@ -139,14 +155,26 @@
             minute: '2-digit' 
         });
         
-        // Parse markdown if it's an AI message
-        const formattedMessage = type === 'ai' ? marked.parse(message) : message;
-        
-        // Create the image URL based on the message type
+        let formattedMessage;
+    
+        // Check if the message contains courses
+        if (type === 'ai' && message.courses) {
+            // Create aligned rows for each course with a button
+            formattedMessage = message.courses.map(course => `
+                <div class="d-flex justify-content-between align-items-center mb-2 mt-2">
+                    <p class="">${course.course_name}</p>
+                    <a href="${course.course_url}" class="btn btn-primary btn-sm ms-auto" target="_blank">Go To Course</a>
+                </div>
+            `).join('');
+        } else {
+            // Regular AI or user messages
+            formattedMessage = type === 'ai' ? marked.parse(message) : message;
+        }
+    
         const imageUrl = type === 'user' ? 
             "{{ url_for('static', filename='images/user.jpeg') }}" : 
             "{{ url_for('static', filename='images/catfu.jpeg') }}";
-
+    
         const html = `
             <div class="d-flex align-items-end ${type === 'user' ? 'flex-row-reverse' : ''}">
                 <img src="${imageUrl}" 
@@ -165,13 +193,55 @@
         messageDiv.innerHTML = html;
         chatMessages.appendChild(messageDiv);
         
-        // Scroll to bottom
         chatMessages.scrollTop = chatMessages.scrollHeight;
-        
-        // Initialize syntax highlighting for code blocks
         messageDiv.querySelectorAll('pre code').forEach((block) => {
             hljs.highlightBlock(block);
         });
     }
+    
+
+    async function sendSuggestion(message) {
+        // Add user message to chat
+        addMessage(message, 'user');
+        
+        // Show typing indicator
+        const typingIndicator = document.getElementById('typingIndicator');
+        if (typingIndicator) {
+            typingIndicator.classList.remove('d-none');
+        }
+    
+        try {
+            // Send message to Flask backend
+            const response = await fetch('/chatbot', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: message })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            
+            const data = await response.json();
+            
+            // Hide typing indicator
+            if (typingIndicator) {
+                typingIndicator.classList.add('d-none');
+            }
+            
+            // Add AI response to chat
+            addMessage(data.response, 'ai');
+        } catch (error) {
+            console.error('Error:', error);
+            if (typingIndicator) {
+                typingIndicator.classList.add('d-none');
+            }
+            addMessage('Sorry, I encountered an error. Please try again.', 'ai');
+        }
+    }
+    
+
 </script>
 {% endblock %}

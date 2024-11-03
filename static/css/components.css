@@ -101,6 +101,45 @@ html {
     gap: 1.5rem;
 }
 
+/* Quiz Components */
+.quiz-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.question-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: all var(--transition-timing);
+}
+
+
+/* Question Options */
+.form-check {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    transition: all var(--transition-timing);
+}
+
+.form-check:hover {
+    background-color: var(--quiz-option-hover-bg);
+    border-color: var(--primary-color);
+}
+
+.form-check.correct {
+    background-color: rgba(16, 185, 129, 0.1);
+    border-color: var(--success-color-light);
+}
+
+.form-check.incorrect {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: var(--error-color-light);
+}
 
 /* Question card specific styles */
 .question-card .form-check {
@@ -329,34 +368,39 @@ html {
     min-width: 100px;
 }
 
-/* Base radio button styles */
+/* Radio Button Base Styles */
 .form-check-input[type="radio"] {
-    background-color: var(--card-bg);
-    border-color: var(--border-color);
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid var(--quiz-radio-border);
+    background-color: var(--quiz-radio-background);
+    margin-right: 1rem;
     position: relative;
     cursor: pointer;
-    width: 1rem;
-    height: 1rem;
-    margin-top: 0.25em;
-    transition: border-color var(--transition-timing), box-shadow var(--transition-timing);
+    transition: all var(--transition-timing);
 }
 
-/* Checked state */
+.form-check-input[type="radio"]:hover {
+    border-color: var(--quiz-radio-hover-border);
+    box-shadow: 0 0 0 4px var(--quiz-radio-hover-bg);
+}
+
 .form-check-input[type="radio"]:checked {
-    background-color: transparent;
     border-color: var(--primary-color);
+    background-color: var(--quiz-radio-background);
 }
 
 .form-check-input[type="radio"]:checked::after {
     content: '';
     position: absolute;
-    width: 8px;
-    height: 8px;
-    left: calc(50% - 4px);  /* 50% - half of width */
-    top: calc(50% - 4px);   /* 50% - half of height */
+    width: 0.75rem;
+    height: 0.75rem;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    transition: width 0.2s ease, height 0.2s ease;
+    background: linear-gradient(135deg, var(--primary-color), #4d7cc7);
+    box-shadow: 0 0 8px rgba(42, 82, 152, 0.3);
 }
 
 /* Focus state */
@@ -365,10 +409,6 @@ html {
     border-color: var(--primary-color);
 }
 
-/* Hover state */
-.form-check-input[type="radio"]:hover {
-    border-color: var(--primary-color);
-}
 
 /* Additional styles for the label */
 .form-check-label {
@@ -494,23 +534,29 @@ img {
     display: block;
 }
 
-/* Status Messages */
-.success-message,
-.error-message {
-    margin: 0;
-    padding: 0.75rem 1rem;
-    border-radius: 4px;
-    text-align: center; 
-}
-
+/* Quiz Status Messages */
 .success-message {
-    color: #10b981;
-    background-color: rgba(16, 185, 129, 0.1);
+    background-color: var(--success-bg-light);
+    color: var(--success-color-light);
+    border: 1px solid var(--success-border-light);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin: 1rem 0;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(5, 150, 105, 0.1);
+    animation: fadeInScale 0.3s ease-out;
 }
 
 .error-message {
-    color: #ef4444;
-    background-color: rgba(239, 68, 68, 0.1);
+    background-color: var(--error-bg-light);
+    color: var(--error-color-light);
+    border: 1px solid var(--error-border-light);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    margin: 1rem 0;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
+    animation: fadeInScale 0.3s ease-out;
 }
 
 /* Accordion Components */
@@ -846,6 +892,18 @@ body.loading-active {
 @keyframes shimmer {
     0% { background-position: -1000px 0; }
     100% { background-position: 1000px 0; }
+}
+
+/* Animation for Questions */
+@keyframes fadeInScale {
+    0% {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 @keyframes dots {

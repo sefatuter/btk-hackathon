@@ -68,4 +68,22 @@
     --radio-gradient-end: #4d7cc7;
     --radio-focus-shadow-light: rgba(42, 82, 152, 0.25);
     --radio-focus-shadow-dark: rgba(42, 82, 152, 0.4);
+
+    /* Quiz Variables - Light Theme */
+    --quiz-radio-border: #94a3b8;
+    --quiz-radio-background: #ffffff;
+    --quiz-radio-hover-border: var(--primary-color);
+    --quiz-radio-hover-bg: rgba(42, 82, 152, 0.1);
+    --quiz-radio-checked-bg: var(--primary-color);
+    --quiz-radio-focus-ring: rgba(42, 82, 152, 0.25);
+    --quiz-option-hover-bg: var(--chat-user-msg-light);
+    --quiz-option-selected-bg: rgba(42, 82, 152, 0.1);
+
+    /* Success/Error Message Colors - Light Theme */
+    --success-bg-light: #ecfdf5;
+    --success-color-light: #059669;
+    --success-border-light: #34d399;
+    --error-bg-light: #fef2f2;
+    --error-color-light: #dc2626;
+    --error-border-light: #ef4444;
 }

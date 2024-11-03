@@ -88,27 +88,28 @@
                     Submit Quiz
             </button>
 
-            <div id="quiz-results">
+            <div id="quiz-results" style="display: none;">
                 <h3>Quiz Results</h3>
                 <p id="score-display"></p>
                 
                 <div style="margin-top: 20px; display: flex; gap: 10px;">
-                    <button id="retake-button" class="btn btn-primary">
-                        Retake Quiz
-                    </button>
+                    <form action="{{ url_for('retake_quiz', topic_id=topic.id) }}" method="POST">
+                        {% if is_subtopic_quiz %}
+                        <input type="hidden" name="is_subtopic" value="true">
+                        <input type="hidden" name="subtopic_id" value="{{ subtopic.id }}">
+                        {% endif %}
+                        <button type="submit" class="btn btn-secondary">Retake Quiz</button>
+                    </form>
                     
-                    {% if is_subtopic_quiz %}
-                    <form action="{{ url_for('recreate_quiz', topic_id=subtopic.id) }}?is_subtopic=true&subtopic_id={{ subtopic.id }}" method="POST" style="display: inline;">
-                    {% else %}
-                    <form action="{{ url_for('recreate_quiz', topic_id=topic.id) }}?is_subtopic=false" method="POST" style="display: inline;">
-                    {% endif %}
-                        <button type="submit" class="btn btn-primary">
-                            Recreate Quiz
-                        </button>
+                    <form action="{{ url_for('recreate_quiz', topic_id=topic.id) }}" method="POST">
+                        {% if is_subtopic_quiz %}
+                        <input type="hidden" name="is_subtopic" value="true">
+                        <input type="hidden" name="subtopic_id" value="{{ subtopic.id }}">
+                        {% endif %}
+                        <button type="submit" class="btn btn-primary">Recreate Quiz</button>
                     </form>
                 </div>
             </div>
-        </div>
 </div>
 
 <script>
@@ -304,5 +305,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial check for submit button
     updateSubmitButton();
 });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const submitButton = document.querySelector('button:contains("Submit Quiz")');
+        const quizResults = document.getElementById('quiz-results');
+        
+        submitButton.addEventListener('click', function() {
+            quizResults.style.display = 'block';
+        });
+    });
 </script>
 {% endblock %}

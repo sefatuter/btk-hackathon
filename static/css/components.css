@@ -964,37 +964,45 @@ a:not(.btn):hover {
 
 /* Footer Component */
 .footer-custom {
-    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%);
-    color: var(--text-light);
-    padding: 0.4rem 0;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-    width: 100%;
-    position: relative;
-    clear: both;
+    background: linear-gradient(135deg, var(--secondary-color) 0%, var(--primary-color) 100%) !important;
+    color: var(--text-light) !important;
+    padding: 0.25rem 0 !important;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1) !important;
+    width: 100% !important;
+    position: relative !important;
+    clear: both !important;
+    min-height: unset !important;
 }
 
 .footer-custom .row {
-    display: flex;
-    align-items: center;
-    min-height: 25px;  
+    display: flex !important;
+    align-items: center !important;
+    min-height: 20px !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 .footer-custom p {
-    margin: 0;
-    line-height: 1.2;
-    font-size: 0.9rem;
+    margin: 0 !important;
+    line-height: 1 !important;
+    font-size: 0.8rem !important;
 }
 
-/* Update the container padding in the footer */
 .footer-custom .container {
-    padding-top: 0.1rem;
-    padding-bottom: 0.1rem;
+    padding-top: 0.1rem !important;
+    padding-bottom: 0.1rem !important;
 }
 
-/* Remove the default Bootstrap py-2 padding */
-.footer-custom .row.py-2 {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
+/* Remove all Bootstrap padding */
+.footer-custom .row.py-2,
+.footer-custom .row.align-items-center {
+    padding: 0 !important;
+}
+
+/* Override any text utilities */
+.footer-custom .text-white-50 {
+    font-size: 0.8rem !important;
+    line-height: 1 !important;
 }
 
 /* Overlay styles */
@@ -1162,9 +1170,13 @@ body.loading-active {
         font-size: 1.1rem;
     }
 
+    .footer-custom {
+        padding: 0.25rem 0 !important;
+    }
+    
     .footer-custom .social-links {
-        justify-content: center;
-        margin-top: 0.5rem;
+        justify-content: center !important;
+        margin-top: 0.25rem !important;
     }
     
     .py-8 {

@@ -578,6 +578,7 @@ textarea::placeholder {
     }
 
 }
+
 /* Accessibility */
 @media (forced-colors: active) {
     .btn,
@@ -611,7 +612,7 @@ textarea::placeholder {
 }
 
 /* Animations */
-@keyframes shimmer {
-    0% { background-position: -1000px 0; }
-    100% { background-position: 1000px 0; }
-}
+    @keyframes shimmer {
+        0% { background-position: -1000px 0; }
+        100% { background-position: 1000px 0; }
+    }

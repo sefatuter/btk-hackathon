@@ -3,7 +3,7 @@ import json
 from flask import Flask, render_template, url_for, flash, redirect, request, jsonify, session
 from flask_login import login_required, login_user, logout_user, UserMixin, LoginManager, current_user
 from forms import RegistrationForm, LoginForm
-from models import db, bcrypt, User, ChatHistory, CourseInfo, Course, Topic, Subtopic, Quiz, SubtopicQuiz, Note
+from models import db, bcrypt, User, ChatHistory, CourseInfo, Course, Topic, Subtopic, Quiz, SubtopicQuiz, Note, StudentProgress
 from dotenv import load_dotenv
 import requests
 import os
@@ -560,20 +560,22 @@ def retake_quiz(topic_id):
 @login_required
 def recreate_quiz(topic_id):
     try:
-        is_subtopic = request.args.get('is_subtopic') == 'true'
+        is_subtopic = request.args.get('is_subtopic', 'false') == 'true'
         subtopic_id = request.args.get('subtopic_id')
         
-        if is_subtopic:
+        if is_subtopic and subtopic_id:
+            subtopic = Subtopic.query.get_or_404(int(subtopic_id))
             # Delete existing subtopic quiz
-            SubtopicQuiz.query.filter_by(subtopic_id=subtopic_id).delete()
+            SubtopicQuiz.query.filter_by(subtopic_id=int(subtopic_id)).delete()
             session_key = f'quiz_subtopic_{subtopic_id}'
             if session_key in session:
                 session.pop(session_key)
             db.session.commit()
             
             # Generate new subtopic quiz
-            return redirect(url_for('generate_subtopic_quiz', subtopic_id=subtopic_id))
+            return redirect(url_for('generate_subtopic_quiz', subtopic_id=int(subtopic_id)))
         else:
+            topic = Topic.query.get_or_404(topic_id)
             # Delete existing topic quiz
             Quiz.query.filter_by(topic_id=topic_id).delete()
             session_key = f'quiz_topic_{topic_id}'
@@ -590,7 +592,97 @@ def recreate_quiz(topic_id):
         flash('An error occurred while recreating the quiz.', 'danger')
         return redirect(url_for('student_dashboard'))
     
-  
+@app.route('/submit_quiz', methods=['POST', 'GET'])
+@login_required
+def submit_quiz():
+    try:
+        # Get form data
+        quiz_type = request.form.get('quiz_type')  # 'topic' or 'subtopic'
+        topic_id = request.form.get('topic_id')
+        subtopic_id = request.form.get('subtopic_id')
+        
+        if not topic_id:
+            raise ValueError("Topic ID is required")
+            
+        # Get topic and course information
+        topic = Topic.query.get_or_404(topic_id)
+        course = Course.query.get_or_404(topic.course_id)
+        
+        # Initialize variables
+        quiz_name = ""
+        correct_count = 0
+        total_questions = 0
+        
+        # Set quiz name based on type
+        if quiz_type == 'subtopic' and subtopic_id:
+            subtopic = Subtopic.query.get_or_404(subtopic_id)
+            quiz_name = f"{subtopic.subtopic_name} Quiz - {topic.topic_name}"
+        else:
+            quiz_name = f"{topic.topic_name} Quiz"
+            
+        # Process submitted answers
+        submitted_answers = {
+            key.split('_')[1]: value 
+            for key, value in request.form.items() 
+            if key.startswith('question_')
+        }
+        
+        total_questions = len(submitted_answers)
+        
+        # Check correct answers
+        for question_id, submitted_answer in submitted_answers.items():
+            if quiz_type == 'subtopic':
+                question = SubtopicQuiz.query.get(question_id)
+            else:
+                question = Quiz.query.get(question_id)
+                
+            if question and question.correct_answer == submitted_answer:
+                correct_count += 1
+        
+        # Get current quiz attempt number
+        latest_progress = StudentProgress.query.filter_by(
+            quiz_name=quiz_name,
+            quiz_course_name=course.course_name
+        ).order_by(StudentProgress.quiz_counter.desc()).first()
+        
+        quiz_counter = 1 if not latest_progress else latest_progress.quiz_counter + 1
+        
+        # Calculate percentage
+        percentage = round((correct_count / total_questions * 100), 1) if total_questions > 0 else 0
+        
+        # Create new progress entry
+        progress = StudentProgress(
+            quiz_name=quiz_name,
+            quiz_course_name=course.course_name,
+            total_questions=total_questions,
+            correct_questions=correct_count,
+            quiz_counter=quiz_counter
+        )
+        
+        db.session.add(progress)
+        db.session.commit()
+        
+        # Store results in session
+        session['quiz_results'] = {
+            'correct_count': correct_count,
+            'total_questions': total_questions,
+            'percentage': percentage,
+            'quiz_counter': quiz_counter
+        }
+        
+        flash(f'Quiz submitted! Score: {correct_count}/{total_questions} ({percentage}%)', 'success')
+        
+        # Redirect based on quiz type
+        if quiz_type == 'subtopic':
+            return redirect(url_for('take_subtopic_quiz', subtopic_id=subtopic_id))
+        else:
+            return redirect(url_for('take_topic_quiz', topic_id=topic_id))
+            
+    except Exception as e:
+        print(f"Error in submit_quiz: {str(e)}")
+        flash('An error occurred while submitting the quiz.', 'danger')
+        return redirect(url_for('student_dashboard'))
+
 @app.route('/create_note/<int:course_id>', methods=['GET', 'POST'])
 def create_note(course_id):
     try:

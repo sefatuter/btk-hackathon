@@ -3,9 +3,7 @@
 {% block title %}Quiz{% endblock %}
 
 {% block content %}
-
 <div class="quiz-container">
-
     <!-- Navigation -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
@@ -35,33 +33,52 @@
         </h2>
     </div>
 
+    <!-- Quiz Form -->
+    <form method="POST" action="{{ url_for('submit_quiz') }}" id="quiz-form">
+        <!-- Hidden fields for quiz information -->
+        <input type="hidden" name="quiz_type" value="{% if is_subtopic_quiz %}subtopic{% else %}topic{% endif %}">
+        <input type="hidden" name="topic_id" value="{{ topic.id }}">
+        {% if is_subtopic_quiz %}
+        <input type="hidden" name="subtopic_id" value="{{ subtopic.id }}">
+        {% endif %}
 
-    <!-- Questions -->
+        <!-- Questions -->
         <div id="quiz-container">
             {% for question in questions %}
             <div class="question-card mb-4">
                 <h4 class="mb-3">Question {{ loop.index }}: {{ question.question }}</h4>
 
-
                 <div class="options options-list">
                     <div class="option form-check">
-                        <label class="form-check-label" for="q{{ question.id }}_A"><input type="radio" id="q{{ question.id }}_A" name="q{{ question.id }}" value="A" class="quiz-option form-check-input"> A) {{ question.option_a }}</label>
+                        <label class="form-check-label" for="q{{ question.id }}_A">
+                            <input type="radio" id="q{{ question.id }}_A" name="question_{{ question.id }}" value="A" class="quiz-option form-check-input"> 
+                            A) {{ question.option_a }}
+                        </label>
                     </div>
                     <div class="option form-check">
-                        <label class="form-check-label" for="q{{ question.id }}_B"><input type="radio" id="q{{ question.id }}_B" name="q{{ question.id }}" value="B" class="quiz-option form-check-input"> B) {{ question.option_b }}</label>
+                        <label class="form-check-label" for="q{{ question.id }}_B">
+                            <input type="radio" id="q{{ question.id }}_B" name="question_{{ question.id }}" value="B" class="quiz-option form-check-input"> 
+                            B) {{ question.option_b }}
+                        </label>
                     </div>
                     <div class="option form-check">
-                        <label class="form-check-label" for="q{{ question.id }}_C"><input type="radio" id="q{{ question.id }}_C" name="q{{ question.id }}" value="C" class="quiz-option form-check-input"> C) {{ question.option_c }}</label>
+                        <label class="form-check-label" for="q{{ question.id }}_C">
+                            <input type="radio" id="q{{ question.id }}_C" name="question_{{ question.id }}" value="C" class="quiz-option form-check-input"> 
+                            C) {{ question.option_c }}
+                        </label>
                     </div>
                     <div class="option form-check">
-                        <label class="form-check-label" for="q{{ question.id }}_D"><input type="radio" id="q{{ question.id }}_D" name="q{{ question.id }}" value="D" class="quiz-option form-check-input"> D) {{ question.option_d }}</label>
+                        <label class="form-check-label" for="q{{ question.id }}_D">
+                            <input type="radio" id="q{{ question.id }}_D" name="question_{{ question.id }}" value="D" class="quiz-option form-check-input"> 
+                            D) {{ question.option_d }}
+                        </label>
                     </div>
                 </div>
                 
                 <div class="feedback mt-3"></div>
                 
                 <div style="display: flex; align-items: start; gap: 10px; margin-top: 10px;">
-                    <button class="explanation-btn" style="display: none; padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap;">
+                    <button type="button" class="explanation-btn btn btn-secondary" style="display: none;">
                         Show Explanation
                     </button>
                 </div>
@@ -73,45 +90,44 @@
                     </div>
                     <div class="explanation-content"></div>
                 </div>
-                <!-- Add these right after the existing hidden inputs -->
+
+                <!-- Hidden fields for question data -->
                 <input type="hidden" class="question-text" value="{{ question.question }}">
                 <input type="hidden" class="correct-answer" value="{{ question.correct_answer }}">
                 <input type="hidden" class="option-a" value="{{ question.option_a }}">
                 <input type="hidden" class="option-b" value="{{ question.option_b }}">
                 <input type="hidden" class="option-c" value="{{ question.option_c }}">
                 <input type="hidden" class="option-d" value="{{ question.option_d }}">
-                
             </div>
             {% endfor %}
-
-            <button id="submit-quiz" type="submit" class="btn btn-primary">
-                    Submit Quiz
+            
+            <button type="submit" class="btn btn-primary" id="submit-quiz">
+                Submit Quiz
             </button>
+        </div>
+    </form>
 
-            <div id="quiz-results" style="display: none;">
-                <h3>Quiz Results</h3>
-                <p id="score-display"></p>
-                
-                <div style="margin-top: 20px; display: flex; gap: 10px;">
-                    <form action="{{ url_for('retake_quiz', topic_id=topic.id) }}" method="POST">
-                        {% if is_subtopic_quiz %}
-                        <input type="hidden" name="is_subtopic" value="true">
-                        <input type="hidden" name="subtopic_id" value="{{ subtopic.id }}">
-                        {% endif %}
-                        <button type="submit" class="btn btn-secondary">Retake Quiz</button>
-                    </form>
-                    
-                    <form action="{{ url_for('recreate_quiz', topic_id=topic.id) }}" method="POST">
-                        {% if is_subtopic_quiz %}
-                        <input type="hidden" name="is_subtopic" value="true">
-                        <input type="hidden" name="subtopic_id" value="{{ subtopic.id }}">
-                        {% endif %}
-                        <button type="submit" class="btn btn-primary">Recreate Quiz</button>
-                    </form>
-                </div>
-            </div>
+    <div id="quiz-results" style="display: none;">
+        <h3>Quiz Results</h3>
+        <p id="score-display"></p>
+        
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button id="retake-button" class="btn btn-primary">
+                Retake Quiz
+            </button>
+            
+            {% if is_subtopic_quiz %}
+            <form action="{{ url_for('recreate_quiz', topic_id=subtopic.id) }}?is_subtopic=true&subtopic_id={{ subtopic.id }}" method="POST" style="display: inline;">
+            {% else %}
+            <form action="{{ url_for('recreate_quiz', topic_id=topic.id) }}?is_subtopic=false" method="POST" style="display: inline;">
+            {% endif %}
+                <button type="submit" class="btn btn-primary">
+                    Recreate Quiz
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const quizContainer = document.getElementById('quiz-container');
@@ -309,9 +325,47 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('DOMContentLoaded', function() {
         const submitButton = document.querySelector('button:contains("Submit Quiz")');
         const quizResults = document.getElementById('quiz-results');
+        let score = 0;
+        let totalQuestions = {{ questions|length }};
         
         submitButton.addEventListener('click', function() {
+            // Show quiz results section
             quizResults.style.display = 'block';
+            
+            // Add the retake quiz button
+            const retakeForm = document.createElement('form');
+            retakeForm.action = "{{ url_for('retake_quiz', topic_id=topic.id) }}";
+            retakeForm.method = "POST";
+            {% if is_subtopic_quiz %}
+            retakeForm.innerHTML = `
+                <input type="hidden" name="is_subtopic" value="true">
+                <input type="hidden" name="subtopic_id" value="{{ subtopic.id }}">
+            `;
+            {% endif %}
+            const retakeButton = document.createElement('button');
+            retakeButton.textContent = 'Retake Quiz';
+            retakeButton.className = 'btn btn-secondary';
+            retakeForm.appendChild(retakeButton);
+            
+            // Add the recreate quiz button
+            const recreateForm = document.createElement('form');
+            recreateForm.action = "{{ url_for('recreate_quiz', topic_id=topic.id) }}";
+            recreateForm.method = "POST";
+            {% if is_subtopic_quiz %}
+            recreateForm.innerHTML = `
+                <input type="hidden" name="is_subtopic" value="true">
+                <input type="hidden" name="subtopic_id" value="{{ subtopic.id }}">
+            `;
+            {% endif %}
+            const recreateButton = document.createElement('button');
+            recreateButton.textContent = 'Recreate Quiz';
+            recreateButton.className = 'btn btn-primary';
+            recreateForm.appendChild(recreateButton);
+            
+            // Add buttons to the flex container
+            const buttonContainer = quizResults.querySelector('div[style*="display: flex"]');
+            buttonContainer.appendChild(retakeForm);
+            buttonContainer.appendChild(recreateForm);
         });
     });
 </script>

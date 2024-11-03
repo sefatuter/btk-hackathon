@@ -535,28 +535,96 @@ img {
 }
 
 /* Quiz Status Messages */
-.success-message {
-    background-color: var(--success-bg-light);
-    color: var(--success-color-light);
-    border: 1px solid var(--success-border-light);
-    border-radius: var(--border-radius);
-    padding: 1rem;
-    margin: 1rem 0;
-    font-weight: 500;
-    box-shadow: 0 2px 4px rgba(5, 150, 105, 0.1);
-    animation: fadeInScale 0.3s ease-out;
+@keyframes feedbackSlideIn {
+    0% {
+        transform: translateY(-20px) scale(0.95);
+        opacity: 0;
+    }
+    50% {
+        transform: translateY(5px) scale(1.02);
+    }
+    100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
 }
 
-.error-message {
-    background-color: var(--error-bg-light);
-    color: var(--error-color-light);
-    border: 1px solid var(--error-border-light);
-    border-radius: var(--border-radius);
-    padding: 1rem;
+/* Base feedback message styles */
+.feedback-message {
+    padding: 1rem 1.5rem;
     margin: 1rem 0;
+    border-radius: var(--border-radius);
     font-weight: 500;
-    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
-    animation: fadeInScale 0.3s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    animation: feedbackSlideIn 0.4s ease-out forwards;
+    box-shadow: var(--box-shadow-md);
+    transition: all var(--transition-timing);
+}
+
+/* Success Message */
+.success-message {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    color: white;
+    border: none;
+}
+
+.success-message::before {
+    content: '✓';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+/* Error Message */
+.error-message {
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    color: white;
+    border: none;
+}
+
+.error-message::before {
+    content: '✕';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .success-message {
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+[data-theme="dark"] .error-message {
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+/* Hover effect */
+.feedback-message:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow-lg);
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+    .feedback-message {
+        animation: none;
+    }
 }
 
 /* Accordion Components */
@@ -776,22 +844,77 @@ a:not(.btn):hover {
     width: 90%;
 }
 
-/* Loading spinner animation */
+/* Spinner styles with improved dark mode */
 .loading-spinner {
-    display: inline-block;
-    width: 50px;
-    height: 50px;
-    border: 3px solid var(--border-color);
-    border-radius: 50%;
-    border-top-color: var(--primary-color);
-    animation: spin 1s linear infinite;
-    margin-bottom: 1rem;
+    text-align: center;
+    padding: 1.5rem;
 }
 
-@keyframes spin {
+.spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--primary-color);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: explanationSpin 0.8s linear infinite;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 0 10px rgba(42, 82, 152, 0.2);
+}
+
+/* Dark mode spinner enhancement */
+[data-theme="dark"] .spinner {
+    border-color: #4d7cc7;
+    border-right-color: transparent;
+    box-shadow: 0 0 15px rgba(77, 124, 199, 0.3);
+}
+
+/* Loading text improvements */
+.loading-spinner + p {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+}
+
+[data-theme="dark"] .loading-spinner + p {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.explanation-text {
+    margin-top: 10px;
+    padding: 1.25rem;
+    border-radius: var(--border-radius);
+    transition: all var(--transition-timing);
+    border: 1px solid var(--border-color);
+    background-color: var(--card-bg) !important;
+}
+
+[data-theme="dark"] .explanation-text {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .explanation-text:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Animation */
+@keyframes explanationSpin {
+    from {
+        transform: rotate(0deg);
+    }
     to {
         transform: rotate(360deg);
     }
+}
+
+/* Loading spinner container background in dark mode */
+[data-theme="dark"] .loading-spinner {
+    background-color: rgba(255, 255, 255, 0.03);
+    border-radius: var(--border-radius);
 }
 
 /* Processing text animation */

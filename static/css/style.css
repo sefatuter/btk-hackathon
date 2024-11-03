@@ -577,7 +577,7 @@ textarea::placeholder {
         padding: 20px;
     }
 
-
+}
 /* Accessibility */
 @media (forced-colors: active) {
     .btn,

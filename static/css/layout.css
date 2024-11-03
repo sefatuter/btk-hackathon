@@ -112,8 +112,10 @@ body {
     background: var(--card-bg);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow-sm);
-    padding: 2rem;
+    padding: 1.5rem;
     flex-shrink: 0;
+    width: calc(100% - 3rem);
+    margin: 0 auto;
 }
 
 .user-info-grid {
@@ -165,6 +167,8 @@ body {
     min-height: 0;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
+    width: calc(100% - 3rem);
+    margin: 0 auto;
 }
 
 .chat-wrapper {

@@ -3,12 +3,13 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="loading-overlay" id="loadingOverlay">
-    <div class="processing-modal">
-        <div class="loading-spinner"></div>
-        <p class="processing-text">AI is processing</p>
+<div class="loading-overlay2" id="loadingOverlay2">
+    <div class="processing-modal2">
+        <div class="loading-spinner2"></div>
+        <p class="processing-text2">AI is processing</p>
     </div>
 </div>
+
 
 <div class="dashboard-container">
     <!-- Top Section Grid -->
@@ -217,18 +218,18 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {    
         const listCourseForms = document.querySelectorAll('.list-course-form');    
-        const loadingOverlay = document.getElementById('loadingOverlay');    
+        const loadingOverlay = document.getElementById('loadingOverlay2');    
         // Function to remove overlay    
         function removeOverlay() {        
             loadingOverlay.classList.remove('active');        
-            document.body.classList.remove('loading-active');    
+            document.body.classList.remove('loading-active2');    
         }    // Add submit handler to each list course form    
         listCourseForms.forEach(form => {        
             form.addEventListener('submit', function(e) {            
                 e.preventDefault();           
                  // Show loading overlay            
                  loadingOverlay.classList.add('active');            
-                 document.body.classList.add('loading-active');            
+                 document.body.classList.add('loading-active2');            
                  // Submit the form after a slight delay            
                  setTimeout(() => {                
                     this.submit();            

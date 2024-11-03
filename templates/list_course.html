@@ -2,12 +2,14 @@
 {% block title %}{{ course.course_name }}{% endblock %}
 {% block content %}
 
-<div class="loading-overlay" id="loadingOverlay">
-    <div class="processing-modal">
-        <div class="loading-spinner"></div>
-        <p class="processing-text">AI is processing</p>
+<!-- Add this right after your opening body tag -->
+<div class="loading-overlay2" id="loadingOverlay2">
+    <div class="processing-modal2">
+        <div class="loading-spinner2"></div>
+        <p class="processing-text2">AI is processing</p>
     </div>
 </div>
+
 
 <div class="course-container">
     <nav aria-label="breadcrumb">
@@ -43,7 +45,7 @@
                     <form action="{{ url_for('generate_topic_quiz', topic_id=topic.id) }}" 
                           method="POST" 
                           class="mb-3"
-                          onsubmit="document.querySelector('.loading-overlay').classList.add('active');">
+                          onsubmit="document.querySelector('.loading-overlay2').classList.add('active');">
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-quiz me-2"></i>Take Topic Quiz
                         </button>
@@ -71,7 +73,7 @@
                                     <!-- Subtopic Quiz Button - Now shows loading overlay on submit -->
                                     <form action="{{ url_for('generate_subtopic_quiz', subtopic_id=subtopic.id) }}" 
                                           method="POST"
-                                          onsubmit="document.querySelector('.loading-overlay').classList.add('active');">
+                                          onsubmit="document.querySelector('.loading-overlay2').classList.add('active');">
                                         <button type="submit" class="btn btn-primary">
                                             <i class="fas fa-quiz me-2"></i>Take Subtopic Quiz
                                         </button>
@@ -88,4 +90,49 @@
     </div>
 </div>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const listButtons = document.querySelectorAll('.list-course-btn');
+        const loadingOverlay = document.getElementById('loadingOverlay2');
+    
+        // Function to remove overlay
+        function removeOverlay() {
+            loadingOverlay.classList.remove('active');
+            document.body.classList.remove('loading-active2');
+        }
+    
+        // Add click handler to each button
+        listButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Show loading overlay
+                loadingOverlay.classList.add('active');
+                document.body.classList.add('loading-active2');
+    
+                // Navigate to the course listing page after a slight delay
+                setTimeout(() => {
+                    window.location.href = this.href;
+                }, 500);
+            });
+        });
+    
+        // Clean up overlay on page load/reload
+        removeOverlay();
+    
+        // Handle browser back/forward navigation
+        window.addEventListener('pageshow', function(event) {
+            // This triggers even when navigating from browser cache (back/forward)
+            if (event.persisted) {
+                removeOverlay();
+            }
+        });
+    
+        // Additional safety cleanup for other navigation scenarios
+        window.addEventListener('popstate', function() {
+            removeOverlay();
+        });
+    });
+
+</script>
 {% endblock %}

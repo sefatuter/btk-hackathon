@@ -4,10 +4,10 @@
 
 {% block content %}
     <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="processing-modal">
-            <div class="loading-spinner"></div>
-            <p class="processing-text">Generating your lecture note</p>
+    <div class="loading-overlay2" id="loadingOverlay2">
+        <div class="processing-modal2">
+            <div class="loading-spinner2"></div>
+            <p class="processing-text2">Generating your lecture note</p>
         </div>
     </div>
 
@@ -95,12 +95,12 @@
     <script>
         // Show loading overlay when form is submitted
         document.getElementById('noteForm').addEventListener('submit', function() {
-            document.getElementById('loadingOverlay').classList.add('active');
+            document.getElementById('loadingOverlay2').classList.add('active');
         });
 
         // Show loading overlay when topic selection changes
         document.getElementById('topicSelect').addEventListener('change', function() {
-            document.getElementById('loadingOverlay').classList.add('active');
+            document.getElementById('loadingOverlay2').classList.add('active');
         });
     </script>
 {% endblock %}

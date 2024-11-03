@@ -616,3 +616,80 @@ textarea::placeholder {
         0% { background-position: -1000px 0; }
         100% { background-position: 1000px 0; }
     }
+
+
+
+
+/* Overlay styles */
+.loading-overlay2 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+}
+
+/* Processing modal styles */
+.processing-modal2 {
+    background: var(--card-bg);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow-lg);
+    text-align: center;
+    max-width: 300px;
+    width: 90%;
+}
+
+/* Loading spinner animation */
+.loading-spinner2 {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    border: 3px solid var(--border-color);
+    border-radius: 50%;
+    border-top-color: var(--primary-color);
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Processing text animation */
+.processing-text2 {
+    color: var(--text-color);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.processing-text2::after {
+    content: '...';
+    animation: dots 1.5s steps(4, end) infinite;
+}
+
+@keyframes dots {
+    0%, 20% { content: ''; }
+    40% { content: '.'; }
+    60% { content: '..'; }
+    80% { content: '...'; }
+}
+
+/* Show overlay when active */
+.loading-overlay2.active {
+    display: flex;
+}
+
+/* Prevent background scrolling when overlay is active */
+body.loading-active2 {
+    overflow: hidden;
+}

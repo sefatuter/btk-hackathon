@@ -173,33 +173,35 @@ system_instruction = '''Tüm yanıtlarını ders bilgileri için belirlediğim �
 }'''
 
 S.T -------------------------------------------------------
-
-  Oluşturulan tabloya chat üzerinden yönlendirme butonu olabilir
-  konuşma içerisinde oluşturuuldu! git tarzı
   
-  tablo ekranına, progress kısmı, öğrenci ilerlemesini kayıt altına alma
+  -( bulut ) tablo ekranına, progress kısmı, öğrenci ilerlemesini kayıt altına alma 
 
-  login yaptıktan sonra "You are taking a step through Edugate!" türü bir pop up çıkar
+  -( bulut ) menüden çıkarken geçiş yerinde kalıyor fix
 
-  take subtopic and topic quiz button "ai is processing.." pop up 
+  -( bulut ) butonlar renk ve düzeni, list, create note, delete butonları iconlu düzen
 
-  arama butonu üstüne not ekleyebilirsin
+  -( bulut ) course add input kısmına öneri cümlesi
 
-  radio button çevresini görünür hale getir, dark mode için 
+  -( bulut ) flash white fix
 
-  menüden çıkarken geçiş yerinde kalıyor fix
+  -( sefa ) login yaptıktan sonra "You are taking a step through Edugate!" türü bir pop up çıkar
 
-  quiz ekranı tarzı düzenle
+  -( sefa ) register - login sayfası düzenleme, home page düzenleme
 
-  butonlar renk ve düzeni, list, create note, delete butonları iconlu düzen
+  -( sefa ) chatbot'a öneri sorular eklenebilir. buton ekle butona tıklayınca mesaj göndersin (show my course, what to do, show my progress)
 
-  register - login sayfası düzenleme, home page düzenleme
+  -( sefa ) create note sayfası düzenle
 
-  recreate butonunda, show explanation butonunda ai is processing çıkar
+  -( pelin ) take subtopic and topic quiz button "ai is processing.." pop up 
 
-  chatbot'a öneri sorular eklenebilir.
+  -( pelin ) radio button çevresini görünür hale getir, dark mode için 
 
-  chat kısmına öneri cümlesi
+  -( pelin ) quiz ekranı tarzı düzenle
+
+  -( pelin ) recreate butonunda, show explanation butonunda ai is processing çıkar
+
+
+  - list course butonuna tıklandıktan sonra create note butonu ortaya çıksın 
 
 ```
 

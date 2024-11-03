@@ -563,51 +563,24 @@ img {
     transition: all var(--transition-timing);
 }
 
-/* Success Message */
-.success-message {
-    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-    color: white;
-    border: none;
-}
-
-.success-message::before {
-    content: '✓';
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    font-size: 1rem;
-    line-height: 1;
-}
-
-/* Error Message */
+/* Status Messages */
+.success-message,
 .error-message {
-    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-    color: white;
-    border: none;
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    text-align: center; 
+}
+.success-message {
+    color: #10b981;
+    background-color: rgba(16, 185, 129, 0.1);
+}
+.error-message {
+    color: #ef4444;
+    background-color: rgba(239, 68, 68, 0.1);
 }
 
-.error-message::before {
-    content: '✕';
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    font-size: 1rem;
-    line-height: 1;
-}
 
-/* Dark theme adjustments */
-[data-theme="dark"] .success-message {
-    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
-}
 
 [data-theme="dark"] .error-message {
     background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);

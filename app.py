@@ -12,6 +12,7 @@ from gemini import generation_config, model1, model2, model3, model4, model5, mo
 from markdown2 import Markdown
 from markupsafe import Markup
 import random
+from sqlalchemy import and_
 
 load_dotenv()
 app = Flask(__name__)
@@ -685,96 +686,77 @@ def recreate_quiz(topic_id):
         return redirect(url_for('student_dashboard'))
     
 @app.route('/submit_quiz', methods=['POST', 'GET'])
-@login_required
 def submit_quiz():
-    try:
-        # Get form data
-        quiz_type = request.form.get('quiz_type')  # 'topic' or 'subtopic'
-        topic_id = request.form.get('topic_id')
-        subtopic_id = request.form.get('subtopic_id')
-        
-        if not topic_id:
-            raise ValueError("Topic ID is required")
-            
-        # Get topic and course information
-        topic = Topic.query.get_or_404(topic_id)
-        course = Course.query.get_or_404(topic.course_id)
-        
-        # Initialize variables
-        quiz_name = ""
-        correct_count = 0
-        total_questions = 0
-        
-        # Set quiz name based on type
-        if quiz_type == 'subtopic' and subtopic_id:
-            subtopic = Subtopic.query.get_or_404(subtopic_id)
-            quiz_name = f"{subtopic.subtopic_name} Quiz - {topic.topic_name}"
-        else:
-            quiz_name = f"{topic.topic_name} Quiz"
-            
-        # Process submitted answers
-        submitted_answers = {
-            key.split('_')[1]: value 
-            for key, value in request.form.items() 
-            if key.startswith('question_')
-        }
-        
-        total_questions = len(submitted_answers)
-        
-        # Check correct answers
-        for question_id, submitted_answer in submitted_answers.items():
-            if quiz_type == 'subtopic':
-                question = SubtopicQuiz.query.get(question_id)
-            else:
-                question = Quiz.query.get(question_id)
-                
-            if question and question.correct_answer == submitted_answer:
+    # Get form data
+    quiz_type = request.form.get('quiz_type')
+    topic_id = request.form.get('topic_id')
+    subtopic_id = request.form.get('subtopic_id')
+    
+    # Get questions and answers
+    answers = {}
+    correct_count = 0
+    for key, value in request.form.items():
+        if key.startswith('question_'):
+            question_id = key.replace('question_', '')
+            answers[question_id] = value
+            if value == request.form.get(f'correct_{question_id}'):
                 correct_count += 1
-        
-        # Get current quiz attempt number
-        latest_progress = StudentProgress.query.filter_by(
+    
+    total_questions = len(answers)
+    
+    # Get quiz name and course name based on quiz type
+    if quiz_type == 'subtopic':
+        subtopic = Subtopic.query.get(subtopic_id)
+        topic = Topic.query.get(topic_id)
+        quiz_name = f"{subtopic.subtopic_name}"
+        quiz_course_name = topic.course.course_code
+    else:
+        topic = Topic.query.get(topic_id)
+        quiz_name = f"{topic.topic_name}"
+        quiz_course_name = topic.course.course_code
+    
+    # Check if progress record exists for this quiz
+    existing_progress = StudentProgress.query.filter(
+        and_(
+            StudentProgress.quiz_name == quiz_name,
+            StudentProgress.quiz_course_name == quiz_course_name
+        )
+    ).first()
+    
+    if existing_progress:
+        # Update existing record
+        existing_progress.total_questions += total_questions
+        existing_progress.correct_questions += correct_count
+        existing_progress.quiz_counter += 1
+    else:
+        # Create new progress record
+        new_progress = StudentProgress(
             quiz_name=quiz_name,
-            quiz_course_name=course.course_name
-        ).order_by(StudentProgress.quiz_counter.desc()).first()
-        
-        quiz_counter = 1 if not latest_progress else latest_progress.quiz_counter + 1
-        
-        # Calculate percentage
-        percentage = round((correct_count / total_questions * 100), 1) if total_questions > 0 else 0
-        
-        # Create new progress entry
-        progress = StudentProgress(
-            quiz_name=quiz_name,
-            quiz_course_name=course.course_name,
+            quiz_course_name=quiz_course_name,
             total_questions=total_questions,
             correct_questions=correct_count,
-            quiz_counter=quiz_counter
+            quiz_counter=1
         )
-        
-        db.session.add(progress)
+        db.session.add(new_progress)
+    
+    try:
         db.session.commit()
-        
-        # Store results in session
-        session['quiz_results'] = {
-            'correct_count': correct_count,
-            'total_questions': total_questions,
-            'percentage': percentage,
-            'quiz_counter': quiz_counter
-        }
-        
-        flash(f'Quiz submitted! Score: {correct_count}/{total_questions} ({percentage}%)', 'success')
-        
-        # Redirect based on quiz type
-        if quiz_type == 'subtopic':
-            return redirect(url_for('take_subtopic_quiz', subtopic_id=subtopic_id))
-        else:
-            return redirect(url_for('take_topic_quiz', topic_id=topic_id))
-            
+        return jsonify({
+            'success': True,
+            'score': {
+                'correct': correct_count,
+                'total': total_questions,
+                'percentage': round((correct_count / total_questions) * 100, 1)
+            },
+            'quiz_counter': existing_progress.quiz_counter if existing_progress else 1
+        })
     except Exception as e:
-        print(f"Error in submit_quiz: {str(e)}")
-        flash('An error occurred while submitting the quiz.', 'danger')
-        return redirect(url_for('student_dashboard'))
-
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+        
 @app.route('/create_note/<int:course_id>', methods=['GET', 'POST'])
 def create_note(course_id):
     try:

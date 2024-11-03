@@ -3,9 +3,7 @@
 {% block title %}Quiz{% endblock %}
 
 {% block content %}
-
 <div class="quiz-container">
-
     <!-- Navigation -->
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
@@ -35,33 +33,52 @@
         </h2>
     </div>
 
+    <!-- Quiz Form -->
+    <form method="POST" action="{{ url_for('submit_quiz') }}" id="quiz-form">
+        <!-- Hidden fields for quiz information -->
+        <input type="hidden" name="quiz_type" value="{% if is_subtopic_quiz %}subtopic{% else %}topic{% endif %}">
+        <input type="hidden" name="topic_id" value="{{ topic.id }}">
+        {% if is_subtopic_quiz %}
+        <input type="hidden" name="subtopic_id" value="{{ subtopic.id }}">
+        {% endif %}
 
-    <!-- Questions -->
+        <!-- Questions -->
         <div id="quiz-container">
             {% for question in questions %}
             <div class="question-card mb-4">
                 <h4 class="mb-3">Question {{ loop.index }}: {{ question.question }}</h4>
 
-
                 <div class="options options-list">
                     <div class="option form-check">
-                        <label class="form-check-label" for="q{{ question.id }}_A"><input type="radio" id="q{{ question.id }}_A" name="q{{ question.id }}" value="A" class="quiz-option form-check-input"> A) {{ question.option_a }}</label>
+                        <label class="form-check-label" for="q{{ question.id }}_A">
+                            <input type="radio" id="q{{ question.id }}_A" name="question_{{ question.id }}" value="A" class="quiz-option form-check-input"> 
+                            A) {{ question.option_a }}
+                        </label>
                     </div>
                     <div class="option form-check">
-                        <label class="form-check-label" for="q{{ question.id }}_B"><input type="radio" id="q{{ question.id }}_B" name="q{{ question.id }}" value="B" class="quiz-option form-check-input"> B) {{ question.option_b }}</label>
+                        <label class="form-check-label" for="q{{ question.id }}_B">
+                            <input type="radio" id="q{{ question.id }}_B" name="question_{{ question.id }}" value="B" class="quiz-option form-check-input"> 
+                            B) {{ question.option_b }}
+                        </label>
                     </div>
                     <div class="option form-check">
-                        <label class="form-check-label" for="q{{ question.id }}_C"><input type="radio" id="q{{ question.id }}_C" name="q{{ question.id }}" value="C" class="quiz-option form-check-input"> C) {{ question.option_c }}</label>
+                        <label class="form-check-label" for="q{{ question.id }}_C">
+                            <input type="radio" id="q{{ question.id }}_C" name="question_{{ question.id }}" value="C" class="quiz-option form-check-input"> 
+                            C) {{ question.option_c }}
+                        </label>
                     </div>
                     <div class="option form-check">
-                        <label class="form-check-label" for="q{{ question.id }}_D"><input type="radio" id="q{{ question.id }}_D" name="q{{ question.id }}" value="D" class="quiz-option form-check-input"> D) {{ question.option_d }}</label>
+                        <label class="form-check-label" for="q{{ question.id }}_D">
+                            <input type="radio" id="q{{ question.id }}_D" name="question_{{ question.id }}" value="D" class="quiz-option form-check-input"> 
+                            D) {{ question.option_d }}
+                        </label>
                     </div>
                 </div>
                 
                 <div class="feedback mt-3"></div>
                 
                 <div style="display: flex; align-items: start; gap: 10px; margin-top: 10px;">
-                    <button class="explanation-btn" style="display: none; padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap;">
+                    <button type="button" class="explanation-btn btn btn-secondary" style="display: none;">
                         Show Explanation
                     </button>
                 </div>
@@ -73,236 +90,264 @@
                     </div>
                     <div class="explanation-content"></div>
                 </div>
-                <!-- Add these right after the existing hidden inputs -->
+
+                <!-- Hidden fields for question data -->
                 <input type="hidden" class="question-text" value="{{ question.question }}">
                 <input type="hidden" class="correct-answer" value="{{ question.correct_answer }}">
                 <input type="hidden" class="option-a" value="{{ question.option_a }}">
                 <input type="hidden" class="option-b" value="{{ question.option_b }}">
                 <input type="hidden" class="option-c" value="{{ question.option_c }}">
                 <input type="hidden" class="option-d" value="{{ question.option_d }}">
-                
             </div>
             {% endfor %}
-
-            <button id="submit-quiz" type="submit" class="btn btn-primary">
-                    Submit Quiz
+            
+            <button type="submit" class="btn btn-primary" id="submit-quiz">
+                Submit Quiz
             </button>
-
-            <div id="quiz-results">
-                <h3>Quiz Results</h3>
-                <p id="score-display"></p>
-                
-                <div style="margin-top: 20px; display: flex; gap: 10px;">
-                    <button id="retake-button" class="btn btn-primary">
-                        Retake Quiz
-                    </button>
-                    
-                    {% if is_subtopic_quiz %}
-                    <form action="{{ url_for('recreate_quiz', topic_id=subtopic.id) }}?is_subtopic=true&subtopic_id={{ subtopic.id }}" method="POST" style="display: inline;">
-                    {% else %}
-                    <form action="{{ url_for('recreate_quiz', topic_id=topic.id) }}?is_subtopic=false" method="POST" style="display: inline;">
-                    {% endif %}
-                        <button type="submit" class="btn btn-primary">
-                            Recreate Quiz
-                        </button>
-                    </form>
-                </div>
-            </div>
         </div>
+    </form>
+
+    <div id="quiz-results" style="display: none;">
+        <h3>Quiz Results</h3>
+        <p id="score-display"></p>
+        
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button id="retake-button" class="btn btn-primary">
+                Retake Quiz
+            </button>
+            
+            {% if is_subtopic_quiz %}
+            <form action="{{ url_for('recreate_quiz', topic_id=subtopic.id) }}?is_subtopic=true&subtopic_id={{ subtopic.id }}" method="POST" style="display: inline;">
+            {% else %}
+            <form action="{{ url_for('recreate_quiz', topic_id=topic.id) }}?is_subtopic=false" method="POST" style="display: inline;">
+            {% endif %}
+                <button type="submit" class="btn btn-primary">
+                    Recreate Quiz
+                </button>
+            </form>
+        </div>
+    </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const quizContainer = document.getElementById('quiz-container');
-    const submitButton = document.getElementById('submit-quiz');
-    const quizResults = document.getElementById('quiz-results');
-    const retakeButton = document.getElementById('retake-button');
-    const questions = document.querySelectorAll('.question-card');
-    let quizSubmitted = false;
-
-    // Load saved answers from localStorage if they exist
-    const quizId = '{{ "subtopic_" + subtopic.id|string if is_subtopic_quiz else "topic_" + topic.id|string }}';
-    const savedAnswers = JSON.parse(localStorage.getItem(`quiz_${quizId}_answers`)) || {};
+    document.addEventListener('DOMContentLoaded', function() {
+        const quizContainer = document.getElementById('quiz-container');
+        const submitButton = document.getElementById('submit-quiz');
+        const quizResults = document.getElementById('quiz-results');
+        const retakeButton = document.getElementById('retake-button');
+        const questions = document.querySelectorAll('.question-card');
+        let quizSubmitted = false;
     
-    // Apply saved answers
-    Object.entries(savedAnswers).forEach(([questionId, answer]) => {
-        const radio = document.querySelector(`#q${questionId}_${answer}`);
-        if (radio) {
-            radio.checked = true;
-        }
-    });
-
-    // Check if all questions are answered and show/hide submit button
-    function updateSubmitButton() {
-        if (quizSubmitted) return;
+        // Load saved answers from localStorage if they exist
+        const quizId = '{{ "subtopic_" + subtopic.id|string if is_subtopic_quiz else "topic_" + topic.id|string }}';
+        const savedAnswers = JSON.parse(localStorage.getItem(`quiz_${quizId}_answers`)) || {};
         
-        const allAnswered = Array.from(questions).every(question => {
-            const name = question.querySelector('input[type="radio"]').name;
-            return document.querySelector(`input[name="${name}"]:checked`);
-        });
-        
-        submitButton.style.display = allAnswered ? 'block' : 'none';
-    }
-
-    // Save answers to localStorage when they change
-    quizContainer.addEventListener('change', function(e) {
-        if (e.target.classList.contains('quiz-option')) {
-            const questionId = e.target.name.replace('q', '');
-            const answer = e.target.value;
-            
-            savedAnswers[questionId] = answer;
-            localStorage.setItem(`quiz_${quizId}_answers`, JSON.stringify(savedAnswers));
-            
-            updateSubmitButton();
-        }
-    });
-
-    // Handle quiz submission
-    submitButton.addEventListener('click', function() {
-        if (quizSubmitted) return;
-        
-        let correctCount = 0;
-        const totalQuestions = questions.length;
-
-        questions.forEach(question => {
-            const selectedAnswer = question.querySelector('input[type="radio"]:checked').value;
-            const correctAnswer = question.querySelector('.correct-answer').value;
-            const feedbackDiv = question.querySelector('.feedback');
-            const explanationBtn = question.querySelector('.explanation-btn');
-
-            if (selectedAnswer === correctAnswer) {
-                correctCount++;
-                feedbackDiv.textContent = 'Correct!';
-                feedbackDiv.style.backgroundColor = '#d4edda';
-                feedbackDiv.style.color = '#155724';
-            } else {
-                feedbackDiv.textContent = `Incorrect. The correct answer was ${correctAnswer}.`;
-                feedbackDiv.style.backgroundColor = '#f8d7da';
-                feedbackDiv.style.color = '#721c24';
+        // Apply saved answers
+        Object.entries(savedAnswers).forEach(([questionId, answer]) => {
+            const radio = document.querySelector(`#q${questionId}_${answer}`);
+            if (radio) {
+                radio.checked = true;
             }
-            feedbackDiv.style.display = 'block';
-            explanationBtn.style.display = 'block';
         });
-
-        // Show results
-        const scoreDisplay = document.getElementById('score-display');
-        const percentage = (correctCount / totalQuestions) * 100;
-        scoreDisplay.textContent = `You got ${correctCount} out of ${totalQuestions} questions correct! (${percentage.toFixed(1)}%)`;
-        quizResults.style.display = 'block';
-
-        // Disable all inputs and hide submit button
-        quizContainer.querySelectorAll('input[type="radio"]').forEach(input => {
-            input.disabled = true;
-        });
-        submitButton.style.display = 'none';
-        
-        // Clear saved answers
-        localStorage.removeItem(`quiz_${quizId}_answers`);
-        
-        quizSubmitted = true;
-    });
-
-    document.querySelectorAll('.explanation-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const explanationContainer = this.parentElement.nextElementSibling;
-            const explanationContent = explanationContainer.querySelector('.explanation-content');
-            const loadingSpinner = explanationContainer.querySelector('.loading-spinner');
+    
+        // Check if all questions are answered and show/hide submit button
+        function updateSubmitButton() {
+            if (quizSubmitted) return;
             
-            if (explanationContainer.style.display === 'none') {
-                explanationContainer.style.display = 'block';
-                this.textContent = 'Close Explanation';
+            const allAnswered = Array.from(questions).every(question => {
+                const name = question.querySelector('input[type="radio"]').name;
+                return document.querySelector(`input[name="${name}"]:checked`);
+            });
+            
+            submitButton.style.display = allAnswered ? 'block' : 'none';
+        }
+    
+        // Save answers to localStorage when they change
+        quizContainer.addEventListener('change', function(e) {
+            if (e.target.classList.contains('quiz-option')) {
+                const questionId = e.target.name.replace('question_', '');
+                const answer = e.target.value;
                 
-                // Only fetch explanation if we haven't already
-                if (!explanationContent.dataset.loaded) {
-                    const questionCard = this.closest('.question-card');
-                    const question = questionCard.querySelector('.question-text').value;
-                    const correctAnswer = questionCard.querySelector('.correct-answer').value;
-                    const optionA = questionCard.querySelector('.option-a').value;
-                    const optionB = questionCard.querySelector('.option-b').value;
-                    const optionC = questionCard.querySelector('.option-c').value;
-                    const optionD = questionCard.querySelector('.option-d').value;
-                    
-                    // Show loading spinner
-                    loadingSpinner.style.display = 'block';
-                    explanationContent.style.display = 'none';
-                    
-                    // Make API call to get AI explanation
-                    fetch('/get_ai_explanation', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            question: question,
-                            correct_answer: correctAnswer,
-                            option_a: optionA,
-                            option_b: optionB,
-                            option_c: optionC,
-                            option_d: optionD
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        // Hide loading spinner and show content
-                        loadingSpinner.style.display = 'none';
-                        explanationContent.style.display = 'block';
-                        
-                        // Update content with AI explanation
-                        explanationContent.innerHTML = data.explanation;
-                        explanationContent.dataset.loaded = 'true';
-                    })
-                    .catch(error => {
-                        loadingSpinner.style.display = 'none';
-                        explanationContent.style.display = 'block';
-                        explanationContent.innerHTML = 'Error loading explanation. Please try again.';
-                        console.error('Error:', error);
-                    });
-                }
-            } else {
-                explanationContainer.style.display = 'none';
-                this.textContent = 'Show Explanation';
+                savedAnswers[questionId] = answer;
+                localStorage.setItem(`quiz_${quizId}_answers`, JSON.stringify(savedAnswers));
+                
+                updateSubmitButton();
             }
         });
-    });
     
-    // Handle retake quiz
-    if (retakeButton) {
-        retakeButton.addEventListener('click', function() {
-            // Reset all radio buttons
-            document.querySelectorAll('input[type="radio"]').forEach(input => {
-                input.checked = false;
-                input.disabled = false;
+        // Replace the submit button click handler in your existing script with this:
+submitButton.addEventListener('click', function(e) {
+    e.preventDefault();
+    if (quizSubmitted) return;
+    
+    // Create FormData from the form
+    const form = document.getElementById('quiz-form');
+    const formData = new FormData(form);
+    
+    // Add correct answers to form data
+    questions.forEach(question => {
+        const questionId = question.querySelector('input[type="radio"]').name.replace('question_', '');
+        formData.append(`correct_${questionId}`, question.querySelector('.correct-answer').value);
+    });
+
+    // Submit quiz
+    fetch(form.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let correctCount = data.score.correct;
+            const totalQuestions = data.score.total;
+
+            questions.forEach(question => {
+                const selectedAnswer = question.querySelector('input[type="radio"]:checked').value;
+                const correctAnswer = question.querySelector('.correct-answer').value;
+                const feedbackDiv = question.querySelector('.feedback');
+                const explanationBtn = question.querySelector('.explanation-btn');
+
+                if (selectedAnswer === correctAnswer) {
+                    feedbackDiv.textContent = 'Correct!';
+                    feedbackDiv.style.backgroundColor = '#d4edda';
+                    feedbackDiv.style.color = '#155724';
+                } else {
+                    feedbackDiv.textContent = `Incorrect. The correct answer was ${correctAnswer}.`;
+                    feedbackDiv.style.backgroundColor = '#f8d7da';
+                    feedbackDiv.style.color = '#721c24';
+                }
+                feedbackDiv.style.padding = '10px';
+                feedbackDiv.style.borderRadius = '4px';
+                feedbackDiv.style.display = 'block';
+                explanationBtn.style.display = 'block';
             });
-            
-            // Hide all feedback, explanation buttons, and explanation texts
-            document.querySelectorAll('.feedback').forEach(div => {
-                div.style.display = 'none';
+
+            // Show results
+            const scoreDisplay = document.getElementById('score-display');
+            scoreDisplay.textContent = `You got ${data.score.correct} out of ${data.score.total} questions correct! (${data.score.percentage}%) - Attempt #${data.quiz_counter}`;
+            quizResults.style.display = 'block';
+
+            // Disable all inputs and hide submit button
+            quizContainer.querySelectorAll('input[type="radio"]').forEach(input => {
+                input.disabled = true;
             });
-            document.querySelectorAll('.explanation-btn').forEach(btn => {
-                btn.style.display = 'none';
-                btn.textContent = 'Show Explanation';
-            });
-            document.querySelectorAll('.explanation-text').forEach(div => {
-                div.style.display = 'none';
-            });
-            
-            // Hide results and submit button
-            document.getElementById('quiz-results').style.display = 'none';
-            document.getElementById('submit-quiz').style.display = 'none';
-            
-            // Reset quiz state
-            quizSubmitted = false;
+            submitButton.style.display = 'none';
             
             // Clear saved answers
             localStorage.removeItem(`quiz_${quizId}_answers`);
             
-            // Scroll to top
-            window.scrollTo(0, 0);
-        });
-    }
-
-    // Initial check for submit button
-    updateSubmitButton();
+            quizSubmitted = true;
+        } else {
+            alert('Error submitting quiz. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error submitting quiz. Please try again.');
+    });
 });
-</script>
+        // Handle explanation buttons
+        document.querySelectorAll('.explanation-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const explanationContainer = this.parentElement.nextElementSibling;
+                const explanationContent = explanationContainer.querySelector('.explanation-content');
+                const loadingSpinner = explanationContainer.querySelector('.loading-spinner');
+                
+                if (explanationContainer.style.display === 'none') {
+                    explanationContainer.style.display = 'block';
+                    this.textContent = 'Close Explanation';
+                    
+                    // Only fetch explanation if we haven't already
+                    if (!explanationContent.dataset.loaded) {
+                        const questionCard = this.closest('.question-card');
+                        const question = questionCard.querySelector('.question-text').value;
+                        const correctAnswer = questionCard.querySelector('.correct-answer').value;
+                        const optionA = questionCard.querySelector('.option-a').value;
+                        const optionB = questionCard.querySelector('.option-b').value;
+                        const optionC = questionCard.querySelector('.option-c').value;
+                        const optionD = questionCard.querySelector('.option-d').value;
+                        
+                        // Show loading spinner
+                        loadingSpinner.style.display = 'block';
+                        explanationContent.style.display = 'none';
+                        
+                        // Make API call to get AI explanation
+                        fetch('/get_ai_explanation', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                question: question,
+                                correct_answer: correctAnswer,
+                                option_a: optionA,
+                                option_b: optionB,
+                                option_c: optionC,
+                                option_d: optionD
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            // Hide loading spinner and show content
+                            loadingSpinner.style.display = 'none';
+                            explanationContent.style.display = 'block';
+                            
+                            // Update content with AI explanation
+                            explanationContent.innerHTML = data.explanation;
+                            explanationContent.dataset.loaded = 'true';
+                        })
+                        .catch(error => {
+                            loadingSpinner.style.display = 'none';
+                            explanationContent.style.display = 'block';
+                            explanationContent.innerHTML = 'Error loading explanation. Please try again.';
+                            console.error('Error:', error);
+                        });
+                    }
+                } else {
+                    explanationContainer.style.display = 'none';
+                    this.textContent = 'Show Explanation';
+                }
+            });
+        });
+        
+        // Handle retake quiz
+        if (retakeButton) {
+            retakeButton.addEventListener('click', function() {
+                // Reset all radio buttons
+                document.querySelectorAll('input[type="radio"]').forEach(input => {
+                    input.checked = false;
+                    input.disabled = false;
+                });
+                
+                // Hide all feedback, explanation buttons, and explanation texts
+                document.querySelectorAll('.feedback').forEach(div => {
+                    div.style.display = 'none';
+                });
+                document.querySelectorAll('.explanation-btn').forEach(btn => {
+                    btn.style.display = 'none';
+                    btn.textContent = 'Show Explanation';
+                });
+                document.querySelectorAll('.explanation-text').forEach(div => {
+                    div.style.display = 'none';
+                });
+                
+                // Hide results and submit button
+                quizResults.style.display = 'none';
+                submitButton.style.display = 'none';
+                
+                // Reset quiz state
+                quizSubmitted = false;
+                
+                // Clear saved answers
+                localStorage.removeItem(`quiz_${quizId}_answers`);
+                
+                // Scroll to top
+                window.scrollTo(0, 0);
+            });
+        }
+    
+        // Initial check for submit button
+        updateSubmitButton();
+    });
+    </script>
 {% endblock %}

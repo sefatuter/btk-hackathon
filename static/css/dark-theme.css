@@ -1,6 +1,15 @@
 /* dark-theme.css */
 
 [data-theme="dark"] {
+    --quiz-radio-border: rgba(255, 255, 255, 0.5);
+    --quiz-radio-background: rgba(255, 255, 255, 0.08);
+    --quiz-radio-hover-border: rgba(255, 255, 255, 0.7);
+    --quiz-radio-hover-bg: rgba(255, 255, 255, 0.12);
+    --quiz-radio-checked-bg: var(--primary-color);
+    --quiz-radio-focus-ring: rgba(42, 82, 152, 0.5);
+    --quiz-option-hover-bg: rgba(255, 255, 255, 0.05);
+    --quiz-option-selected-bg: rgba(42, 82, 152, 0.2);
+
     /* Base Colors - Dark Theme */
     --background-color: #1a1a1a;
     --text-color: #ffffff;
@@ -36,6 +45,11 @@
         background-color: var(--card-bg);
         border-color: var(--border-color);
         color: var(--text-color);
+    }
+
+    .question-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
     }
 
     .question-card .form-check:hover {
@@ -135,34 +149,76 @@
         }
     }
 
+    /* Quiz Styles - Dark Theme */
     .form-check-input[type="radio"] {
-        background-color: var(--chat-bg-dark);
-        border-color: var(--radio-border-light-dark);
-    }
-    
-    .form-check-input[type="radio"]:checked {
-        background: transparent;
-        border-color: var(--radio-checked-border-dark);
-    }
-
-    .form-check-input[type="radio"]:checked::after {
-        background: linear-gradient(135deg, var(--radio-gradient-start), var(--radio-gradient-end));
+        width: 1.25rem;
+        height: 1.25rem;
+        border: 2px solid var(--quiz-radio-border);
+        background-color: var(--quiz-radio-background);
+        margin-right: 1rem;
+        position: relative;
+        cursor: pointer;
+        transition: all var(--transition-timing);
     }
 
     .form-check-input[type="radio"]:hover {
-        border-color: var(--radio-hover-border-dark);
+        border-color: var(--quiz-radio-hover-border);
+        background-color: var(--quiz-radio-hover-bg);
+        box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
     }
+
+    .form-check-input[type="radio"]:checked {
+        border-color: var(--primary-color);
+        background-color: transparent;
+    }
+
+    .form-check-input[type="radio"]:checked::after {
+        content: '';
+        position: absolute;
+        width: 0.75rem;
+        height: 0.75rem;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary-color), #4d7cc7);
+        box-shadow: 0 0 8px rgba(77, 124, 199, 0.4);
+    }
+
 
     .form-check-input[type="radio"]:focus {
-        box-shadow: 0 0 0 0.2rem var(--radio-focus-shadow-dark); /* Darker shadow for dark mode */
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem var(--quiz-radio-focus-ring);
     }
 
-    .prompt-form .input-group .btn-primary {
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    /* The text next to the radio button */
+    .form-check-label {
+        color: var(--text-light);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        margin: 0;
+        font-size: 1rem;
+    }
 
-        &:hover {
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
-        }
+    .form-check-input:checked + .form-check-label {
+        color: var(--text-light);
+    }
+    .form-check.selected {
+        background-color: var(--quiz-option-selected-bg);
+        border-color: var(--primary-color);
+    }
+
+    /* Correct/Incorrect answer styles */
+    .form-check.correct {
+        background-color: rgba(16, 185, 129, 0.2);
+        border-color: #059669;
+    }
+
+    .form-check.incorrect {
+        background-color: rgba(239, 68, 68, 0.2);
+        border-color: #dc2626;
     }
 
     /* Form Controls Dark Theme */
@@ -372,10 +428,16 @@
     /* Status Messages Dark Theme */
     .success-message {
         background-color: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+        border-color: #059669;
+        box-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
     }
 
     .error-message {
         background-color: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        border-color: #dc2626;
+        box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
     }
 
     /* Scrollbar Dark Theme */

@@ -12,6 +12,7 @@ from gemini import generation_config, model1, model2, model3, model4, model5, mo
 from markdown2 import Markdown
 from markupsafe import Markup
 import random
+from sqlalchemy import and_
 
 load_dotenv()
 app = Flask(__name__)
@@ -27,19 +28,7 @@ login_manager.login_view = 'login'
 
 @app.route('/')
 def index():
-    return redirect('/home')
-
-
-@app.route('/home')
-def home():
-    # ... code
-    return render_template('index.html')
-
-
-@app.route('/base')
-def base():
-    # ... code        
-    return render_template('base.html')
+    return redirect('/register')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -59,17 +48,22 @@ def load_user(user_id):
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('student_dashboard'))
+        
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
-            login_user(user)  # Log the user in
+            login_user(user)
             flash('Login successful!', 'success')
-            return redirect(url_for('student_dashboard'))  # Adjust redirection based on user role
+            return redirect(url_for('student_dashboard'))
         else:
             flash('Login failed. Check your email and password.', 'danger')
+            return render_template('login.html', form=form)
 
     return render_template('login.html', form=form)
+
 
 @app.route('/logout', methods=['POST', 'GET'])
 def logout():
@@ -238,9 +232,108 @@ def chatbot():
     if request.method == 'POST':
         data = request.get_json()
         user_message = data.get('message')
+
+        if user_message == "Show my course":
+            courses = CourseInfo.query.all()
+            course_list = []
+
+            for course in courses:
+                # Add the course name and a URL to redirect to the course page
+                course_list.append({
+                    "course_name": course.course_name,
+                    "course_url": url_for('list_course', course_id=course.id)
+                })
+
+            # Format the response message with courses and links
+            ai_response = {
+                "courses": course_list
+            }
+            
+        elif user_message == "What to do":
+            ai_response = '''EduAI Assistant is your dedicated educational companion, ready to assist you with a variety of tasks related to your coursework.You can ask the bot to show your current courses, guide you on what tasks to prioritize, or provide insights into your academic progress.'''
         
-        # Generate response using model3
-        ai_response = generate_text(user_message, model=model4)
+        elif user_message == "Show my progress":
+            ai_response = '''Showing progress'''
+            
+        elif user_message == "Quiz Assistance":
+            # Retrieve all courses
+            courses = Course.query.all()
+            course_data = []
+
+            # Iterate through each course to gather topics and subtopics with quizzes
+            for course in courses:
+                course_info = {
+                    'course_name': course.course_name,
+                    'topics': []
+                }
+                
+                for topic in course.topics:
+                    topic_info = {
+                        'topic_name': topic.topic_name,
+                        'subtopics': [],
+                        'topic_quiz_available': False,
+                        'topic_id': topic.id  # Add topic ID for the URL
+                    }
+                    
+                    # Find quizzes directly associated with this topic
+                    topic_quizzes = Quiz.query.filter_by(topic_id=topic.id).all()
+                    if topic_quizzes:
+                        topic_info['topic_quiz_available'] = True
+
+                    # Find subtopics under this topic that have quizzes
+                    subtopics_with_quizzes = (
+                        db.session.query(Subtopic)
+                        .join(SubtopicQuiz, Subtopic.id == SubtopicQuiz.subtopic_id)
+                        .filter(Subtopic.topic_id == topic.id)
+                        .all()
+                    )
+
+                    # Add each subtopic with quizzes to the topic's info
+                    for subtopic in subtopics_with_quizzes:
+                        topic_info['subtopics'].append({
+                            'name': subtopic.subtopic_name,
+                            'id': subtopic.id  # Add subtopic ID for the URL
+                        })
+
+                    if topic_info['subtopics'] or topic_info['topic_quiz_available']:
+                        course_info['topics'].append(topic_info)
+
+                if course_info['topics']:
+                    course_data.append(course_info)
+
+            # Format the output in a list view with proper URLs
+            if course_data:
+                ai_response = "<ul>"
+                for course in course_data:
+                    ai_response += f"<li><strong>Course Name:</strong> {course['course_name']}<ul>"
+                    for topic in course['topics']:
+                        # Create topic quiz button with proper URL
+                        topic_quiz_button = (
+                            f"<a href='{url_for('take_topic_quiz', topic_id=topic['topic_id'])}' "
+                            "class='btn btn-primary btn-sm ms-auto m-1' target='_blank'> Go to Topic Quiz</a>"
+                            if topic['topic_quiz_available'] else ""
+                        )
+                        ai_response += f"<li><strong>Topic:</strong> {topic['topic_name']} {topic_quiz_button}<ul>"
+
+                        # Create subtopic quiz buttons with proper URLs
+                        for subtopic in topic['subtopics']:
+                            ai_response += (
+                                f"<div class='d-flex align-items-center'>"
+                                f"<div class='d-flex justify-content-between align-items-center'><li>{subtopic['name']} "
+                                f"<a href='{url_for('take_subtopic_quiz', subtopic_id=subtopic['id'])}' "
+                                "class='btn btn-primary btn-sm ms-auto m-1' target='_blank'>Go To Subtopic Quiz</a></li></div>"
+                            )
+
+                        ai_response += "</ul></li>"
+                    ai_response += "</ul></li>"
+                ai_response += "</ul>"
+            else:
+                ai_response = "No courses with topics and subtopics containing quizzes are currently available."
+
+
+        else:
+            # Generate other AI responses
+            ai_response = generate_text(user_message, model=model4)
         
         return jsonify({'response': ai_response})
     
@@ -560,20 +653,22 @@ def retake_quiz(topic_id):
 @login_required
 def recreate_quiz(topic_id):
     try:
-        is_subtopic = request.args.get('is_subtopic') == 'true'
+        is_subtopic = request.args.get('is_subtopic', 'false') == 'true'
         subtopic_id = request.args.get('subtopic_id')
         
-        if is_subtopic:
+        if is_subtopic and subtopic_id:
+            subtopic = Subtopic.query.get_or_404(int(subtopic_id))
             # Delete existing subtopic quiz
-            SubtopicQuiz.query.filter_by(subtopic_id=subtopic_id).delete()
+            SubtopicQuiz.query.filter_by(subtopic_id=int(subtopic_id)).delete()
             session_key = f'quiz_subtopic_{subtopic_id}'
             if session_key in session:
                 session.pop(session_key)
             db.session.commit()
             
             # Generate new subtopic quiz
-            return redirect(url_for('generate_subtopic_quiz', subtopic_id=subtopic_id))
+            return redirect(url_for('generate_subtopic_quiz', subtopic_id=int(subtopic_id)))
         else:
+            topic = Topic.query.get_or_404(topic_id)
             # Delete existing topic quiz
             Quiz.query.filter_by(topic_id=topic_id).delete()
             session_key = f'quiz_topic_{topic_id}'
@@ -590,7 +685,78 @@ def recreate_quiz(topic_id):
         flash('An error occurred while recreating the quiz.', 'danger')
         return redirect(url_for('student_dashboard'))
     
-  
+@app.route('/submit_quiz', methods=['POST', 'GET'])
+def submit_quiz():
+    # Get form data
+    quiz_type = request.form.get('quiz_type')
+    topic_id = request.form.get('topic_id')
+    subtopic_id = request.form.get('subtopic_id')
+    
+    # Get questions and answers
+    answers = {}
+    correct_count = 0
+    for key, value in request.form.items():
+        if key.startswith('question_'):
+            question_id = key.replace('question_', '')
+            answers[question_id] = value
+            if value == request.form.get(f'correct_{question_id}'):
+                correct_count += 1
+    
+    total_questions = len(answers)
+    
+    # Get quiz name and course name based on quiz type
+    if quiz_type == 'subtopic':
+        subtopic = Subtopic.query.get(subtopic_id)
+        topic = Topic.query.get(topic_id)
+        quiz_name = f"{subtopic.subtopic_name}"
+        quiz_course_name = topic.course.course_code
+    else:
+        topic = Topic.query.get(topic_id)
+        quiz_name = f"{topic.topic_name}"
+        quiz_course_name = topic.course.course_code
+    
+    # Check if progress record exists for this quiz
+    existing_progress = StudentProgress.query.filter(
+        and_(
+            StudentProgress.quiz_name == quiz_name,
+            StudentProgress.quiz_course_name == quiz_course_name
+        )
+    ).first()
+    
+    if existing_progress:
+        # Update existing record
+        existing_progress.total_questions += total_questions
+        existing_progress.correct_questions += correct_count
+        existing_progress.quiz_counter += 1
+    else:
+        # Create new progress record
+        new_progress = StudentProgress(
+            quiz_name=quiz_name,
+            quiz_course_name=quiz_course_name,
+            total_questions=total_questions,
+            correct_questions=correct_count,
+            quiz_counter=1
+        )
+        db.session.add(new_progress)
+    
+    try:
+        db.session.commit()
+        return jsonify({
+            'success': True,
+            'score': {
+                'correct': correct_count,
+                'total': total_questions,
+                'percentage': round((correct_count / total_questions) * 100, 1)
+            },
+            'quiz_counter': existing_progress.quiz_counter if existing_progress else 1
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+        
 @app.route('/create_note/<int:course_id>', methods=['GET', 'POST'])
 def create_note(course_id):
     try:

@@ -7,3 +7,5 @@ class Config:
     
 # Database configs
 # Database name eduaidb
+# User name postgres
+# port 5432

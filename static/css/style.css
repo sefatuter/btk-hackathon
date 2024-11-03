@@ -237,6 +237,346 @@ textarea::placeholder {
     border-radius: 4px;
     overflow-x: auto;
 }
+    
+/* Page Background */
+.login-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--background-color);
+    padding: 20px;
+}
+
+/* Login Box */
+.login-box {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow-lg);
+    overflow: hidden;
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Illustration Side */
+.illustration-wrapper {
+    background: linear-gradient(45deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.login-illustration {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.9);
+}
+
+/* Login Content Side */
+.login-content {
+    flex: 1;
+    padding: 40px;
+    color: var(--text-color);
+}
+
+.login-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.login-subtitle {
+    color: var(--text-muted);
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+/* Custom Input Styles */
+.custom-input {
+    height: 50px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    padding-left: 45px;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.custom-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem #2575fc33;
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 1.2rem;
+}
+
+/* Login Button */
+.login-btn {
+    width: 100%;
+    height: 50px;
+    border-radius: 10px;
+    background: linear-gradient(45deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--text-light);
+    transition: all 0.3s ease;
+    box-shadow: var(--box-shadow-sm);
+}
+
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow-md);
+}
+
+/* Additional Links */
+.additional-links {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.additional-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.additional-links a:hover {
+    color: var(--primary-color);
+}
+
+.divider {
+    margin: 0 10px;
+    color: var(--text-muted);
+}
+
+/* Overlay Styles */
+.loading-overlay {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.loading-spinner {
+    border-top: 5px solid var(--primary-color);
+    border-radius: 50%;
+}
+
+.processing-text {
+    color: var(--text-light);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Page Background */
+.note-page {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    background: var(--background-color);
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+/* Note Box */
+.note-box {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow-lg);
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Note Content Side */
+.note-content {
+    padding: 2.5rem;
+    color: var(--text-color);
+}
+
+.header-section {
+    margin-bottom: 2rem;
+}
+
+.note-title {
+    font-size: clamp(2rem, 4vw, 2.5rem);
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.625rem;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.note-subtitle {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.custom-input {
+    height: 3.125rem;
+    border-radius: 0.625rem;
+    border: 1px solid var(--border-color);
+    padding-left: 2.8125rem;
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.custom-input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(37, 117, 252, 0.2);
+}
+
+.input-icon {
+    position: absolute;
+    left: 0.9375rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 1.2rem;
+}
+
+/* Note Button */
+.note-btn {
+    width: 100%;
+    height: 3.125rem;
+    border-radius: 0.625rem;
+    background: linear-gradient(45deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--text-light);
+    transition: all 0.3s ease;
+    box-shadow: var(--box-shadow-sm);
+}
+
+.note-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow-md);
+}
+
+/* Generated Note Section */
+.generated-note {
+    margin-top: 2rem;
+}
+
+.generated-title {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.note-content-box {
+    background: var(--input-bg);
+    border-radius: 0.625rem;
+    padding: 1.25rem;
+    max-height: calc(100vh - 20rem);
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+}
+
+.note-content-box::-webkit-scrollbar {
+    width: 8px;
+}
+
+.note-content-box::-webkit-scrollbar-track {
+    background: var(--input-bg);
+    border-radius: 4px;
+}
+
+.note-content-box::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+/* Additional Links */
+.additional-links {
+    margin: 1.25rem 0;
+}
+
+.dashboard-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+}
+
+.dashboard-link:hover {
+    color: var(--secondary-color);
+}
+
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .note-page {
+        padding: 1rem;
+    }
+    
+    .note-content {
+        padding: 1.5rem;
+    }
+
+    .note-content-box {
+        max-height: calc(100vh - 15rem);
+    }
+
+    .note-title {
+        font-size: 1.8rem;
+    }
+
+    .custom-input {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .note-page {
+        padding: 0.5rem;
+    }
+
+    .note-content {
+        padding: 1rem;
+    }
+
+    .processing-modal {
+        width: 90%;
+        padding: 20px;
+    }
+
 
 /* Accessibility */
 @media (forced-colors: active) {

@@ -3,16 +3,279 @@
 {% block title %}Register{% endblock %}
 
 {% block content %}
-    <div class="register-container">
-        <h1 class="register-heading montserrat">Join Our Learning Platform</h1>
-        <form method="POST" action="" class="register-form">
-            {{ form.hidden_tag() }}
-            <div>{{ form.username.label }} {{ form.username() }}</div>
-            <div>{{ form.email.label }} {{ form.email() }}</div>
-            <div>{{ form.password.label }} {{ form.password() }}</div>
-            <div>{{ form.confirm_password.label }} {{ form.confirm_password() }}</div>
-            <div>{{ form.role.label }} {{ form.role() }}</div>
-            <div>{{ form.submit() }}</div>
-        </form>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="processing-modal">
+            <div class="loading-spinner"></div>
+            <p class="processing-text">Creating your Edugate account!</p>
+        </div>
     </div>
+
+    <div class="register-page">
+        <div class="register-box">
+            <div class="illustration-wrapper">
+                <img src="../static/images/registerp.jpeg" alt="register-illustration" class="register-illustration"/>
+            </div>
+            <div class="register-content">
+                <h1 class="register-title">Create an Account</h1>
+                <p class="register-subtitle">Join our learning community today!</p>
+                
+                <form method="POST" action="" class="register-form" id="registerForm">
+                    {{ form.hidden_tag() }}
+                    <div class="form-group position-relative">
+                        <i class="bi bi-person input-icon"></i>
+                        {{ form.username(class="form-control custom-input", placeholder="Username") }}
+                        {% for error in form.username.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="form-group position-relative">
+                        <i class="bi bi-envelope input-icon"></i>
+                        {{ form.email(class="form-control custom-input", placeholder="Email") }}
+                        {% for error in form.email.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="form-group position-relative">
+                        <i class="bi bi-lock input-icon"></i>
+                        {{ form.password(class="form-control custom-input", placeholder="Password") }}
+                        {% for error in form.password.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="form-group position-relative">
+                        <i class="bi bi-lock-fill input-icon"></i>
+                        {{ form.confirm_password(class="form-control custom-input", placeholder="Confirm Password") }}
+                        {% for error in form.confirm_password.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="form-group position-relative">
+                        <i class="bi bi-person-badge input-icon"></i>
+                        {{ form.role(class="form-control custom-input") }}
+                        {% for error in form.role.errors %}
+                            <span class="text-danger">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="form-group">
+                        {{ form.submit(class="btn btn-primary register-btn") }}
+                    </div>
+                    <div class="additional-links">
+                        <span>Already have an account?</span>
+                        <a href="/login" class="login-link">Login here</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Import Bootstrap Icons */
+        @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css");
+    
+        /* Page Background */
+        .register-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--background-color);
+            padding: 20px;
+        }
+    
+        /* Register Box */
+        .register-box {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow-lg);
+            overflow: hidden;
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            animation: fadeIn 0.5s ease-out;
+        }
+    
+        /* Illustration Side */
+        .illustration-wrapper {
+            background: linear-gradient(45deg, var(--secondary-color) 0%, var(--primary-color) 100%);
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+    
+        .register-illustration {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.9);
+        }
+    
+        /* Register Content Side */
+        .register-content {
+            flex: 1;
+            padding: 40px;
+            color: var(--text-color);
+        }
+    
+        .register-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+    
+        .register-subtitle {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+    
+        .form-group {
+            margin-bottom: 20px;
+        }
+    
+        /* Custom Input Styles */
+        .custom-input {
+            height: 50px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            padding-left: 45px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+        }
+    
+        .custom-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem #2575fc33;
+        }
+    
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.2rem;
+        }
+    
+        /* Register Button */
+        .register-btn {
+            width: 100%;
+            height: 50px;
+            border-radius: 10px;
+            background: linear-gradient(45deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            border: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-light);
+            transition: all 0.3s ease;
+            box-shadow: var(--box-shadow-sm);
+        }
+    
+        .register-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--box-shadow-md);
+        }
+    
+        /* Additional Links */
+        .additional-links {
+            text-align: center;
+            margin-top: 20px;
+        }
+    
+        .additional-links span {
+            color: var(--text-muted);
+        }
+    
+        .additional-links a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            margin-left: 5px;
+            transition: color 0.3s ease;
+        }
+    
+        .additional-links a:hover {
+            color: var(--secondary-color);
+        }
+    
+        /* Overlay Styles */
+        .loading-overlay {
+            background: rgba(0, 0, 0, 0.8);
+        }
+    
+        .loading-spinner {
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+        }
+    
+        .processing-text {
+            color: var(--text-light);
+        }
+    
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .register-box {
+                flex-direction: column;
+            }
+            
+            .illustration-wrapper {
+                display: none;
+            }
+            
+            .register-content {
+                padding: 30px;
+            }
+        }
+    </style>
+    
+    <script>
+        // Function to show overlay
+        function showLoadingOverlay() {
+            document.getElementById('loadingOverlay').classList.add('active');
+            document.body.classList.add('loading-active');
+        }
+
+        // Function to hide overlay
+        function hideLoadingOverlay() {
+            document.getElementById('loadingOverlay').classList.remove('active');
+            document.body.classList.remove('loading-active');
+        }
+
+        // Handle form submission
+        document.getElementById('registerForm').addEventListener('submit', function(event) {
+            const form = this;
+            const hasErrors = document.getElementsByClassName('text-danger').length > 0;
+            
+            if (!hasErrors) {
+                showLoadingOverlay();
+                setTimeout(function() {
+                    form.submit();
+                }, 1500);
+            }
+        });
+
+        // Hide overlay if there are flash messages or errors
+        window.onload = function() {
+            const hasFlashMessages = document.getElementsByClassName('alert').length > 0;
+            const hasErrors = document.getElementsByClassName('text-danger').length > 0;
+            
+            if (hasFlashMessages || hasErrors) {
+                hideLoadingOverlay();
+            }
+        };
+    </script>
 {% endblock %}
